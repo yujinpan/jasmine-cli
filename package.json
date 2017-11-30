@@ -2,6 +2,8 @@
   "name": "testem-cli",
   "version": "0.1.0",
   "devDependencies": {
-    "grunt": "^1.0.1"
+    "grunt": "^1.0.1",
+    "grunt-testem-mincer": "^0.5.18",
+    "phantomjs": "^2.1.7+deprecated"
   }
 }
