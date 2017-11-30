@@ -5,5 +5,9 @@
     "grunt": "^1.0.1",
     "grunt-testem-mincer": "^0.5.18",
     "phantomjs": "^2.1.7+deprecated"
+  },
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "lodash": "^4.17.4"
   }
 }

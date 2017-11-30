@@ -7,6 +7,8 @@ module.exports = function(grunt) {
                     framework: 'jasmine2',
                     launch_in_dev: ['PhantomJS'],
                     serve_files: [
+                        'node_modules/lodash/lodash.js',
+                        'node_modules/jquery/jquery.js',
                         'src/**/*.js',
                         'test/**/*.js'
                     ],
