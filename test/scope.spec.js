@@ -59,6 +59,35 @@ describe("Scope", function () {
             expect(scope.counter).toBe(2);
         });
 
+        it("当watch的值为undefined的时候调用监听器", function() {
+
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope) { return scope.someValue; },
+                function(newValue, oldValue, scope) { scope.counter++; }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+        });
+
+        it("第一次调用具有新值的监听器作为旧值", function() {
+            scope.someValue = 123;
+            var oldValueGiven;
+
+            scope.$watch(
+                function(scope) { return scope.someValue; },
+                function(newValue, oldValue, scope) {
+                    oldValueGiven = oldValue;
+                }
+            );
+
+            scope.$digest();
+            expect(oldValueGiven).toBe(123);
+        });
+
     });
 
 });
