@@ -9,6 +9,7 @@ module.exports = function(grunt) {
                     serve_files: [
                         'node_modules/lodash/lodash.js',
                         'node_modules/jquery/jquery.js',
+                        'node_modules/sinon/pkg/sinon.js',
                         'src/**/*.js',
                         'test/**/*.js'
                     ],

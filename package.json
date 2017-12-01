@@ -4,7 +4,8 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-testem-mincer": "^0.5.18",
-    "phantomjs": "^2.1.7+deprecated"
+    "phantomjs": "^2.1.7+deprecated",
+    "sinon": "^4.1.2"
   },
   "dependencies": {
     "jquery": "^3.2.1",
