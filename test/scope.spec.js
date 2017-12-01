@@ -88,6 +88,15 @@ describe("Scope", function () {
             expect(oldValueGiven).toBe(123);
         });
 
+        it("可能有观察者省略了监听功能", function() {
+
+            var watchFn = jasmine.createSpy().and.returnValue('something');
+            scope.$watch(watchFn);
+
+            scope.$digest();
+            expect(watchFn).toHaveBeenCalled();
+        });
+
     });
 
 });
