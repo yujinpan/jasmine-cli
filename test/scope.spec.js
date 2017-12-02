@@ -174,7 +174,27 @@ describe("Scope", function () {
             expect(watchExecutions).toBe(301);
         });
 
-        
+        it("如果启用，则根据值进行比较", function() {
+
+            scope.aValue = [1,2,3];
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope){
+                    scope.counter++;
+                },
+                true
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.aValue.push(4);
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
 
     });
 
