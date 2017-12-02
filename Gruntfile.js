@@ -24,6 +24,6 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks("grunt-testem-mincer");
 
-    grunt.registerTask("default", ['testem:run:unit']);
+    grunt.registerTask("testem", ['testem:run:unit']);
 
 };
