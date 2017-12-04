@@ -274,6 +274,60 @@ describe("Scope", function () {
             expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
+        it("执行有watch函数添加的$evalAsync函数", function() {
+            scope.aValue = [1,2,3];
+            scope.asyncEvaluated = false;
+
+            scope.$watch(
+                function(scope){
+                    if(!scope.asyncEvaluated){
+                        scope.$evalAsync(function(scope){
+                            scope.asyncEvaluated = true;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope){}
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+        });
+
+        it("执行$evalAsync的功能,即使不脏", function() {
+            scope.aValue = [1,2,3];
+            scope.asyncEvaluatedTimes = 0;
+            scope.$watch(
+                function(scope){
+                    if(scope.asyncEvaluatedTimes < 2){
+                        scope.$evalAsync(function(scope){
+                            scope.asyncEvaluatedTimes++;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope) {}
+            );
+
+            scope.$digest();
+
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+        });
+
+        it("最终会暂停watcher添加的$evalAsyncs", function() {
+            scope.aValue = [1,2,3];
+            
+            scope.$watch(
+                function(scope){
+                    scope.$evalAsync(function(scope){});
+                    return scope.aValue;
+                },
+                function(newValu, oldValue, scope){}
+            );
+
+            expect(function() {scope.$digest();}).toThrow();
+        });
+
     });
 
 });
