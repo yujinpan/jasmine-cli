@@ -234,7 +234,25 @@ describe("Scope", function () {
             expect(result).toBe(44);
         });
 
-        
+        it("执行$apply'ed函数并启动$digest", function (){
+            scope.aValue = 'someValue';
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope){
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$apply(function(scope){
+                scope.aValue = 'anotherValue';
+            });
+            expect(scope.counter).toBe(2);
+        });
 
     });
 

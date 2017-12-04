@@ -68,4 +68,12 @@ Scope.prototype.$eval = function(expr, locals){
     return expr(this, locals);
 };
 
+Scope.prototype.$apply = function(expr){
+    try{
+        this.$eval(expr);
+    }finally{
+        this.$digest();
+    }
+};
+
 function initWatchVal(){}
