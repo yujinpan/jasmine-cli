@@ -4,6 +4,7 @@
 function Scope() {
     this.$$watchers = [];
     this.$$lastDirtyWatch = null;
+    this.$$asyncQueue = [];
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
@@ -28,8 +29,13 @@ Scope.prototype.$areEqual = function(newValue, oldValue, valueEq){
 Scope.prototype.$digest = function() {
     var ttl = 10;
     var dirty;
+    var asyncTask;
     this.$$lastDirtyWatch = null;
     do{
+        while(this.$$asyncQueue.length){
+            asyncTask = this.$$asyncQueue.shift();
+            asyncTask.scope.$eval(asyncTask.expression);
+        }
         dirty = this.$$digestOnce();
         if(dirty && !(ttl--)){
             throw "10 digest iterations reached.";
@@ -66,6 +72,10 @@ Scope.prototype.$$digestOnce = function () {
 
 Scope.prototype.$eval = function(expr, locals){
     return expr(this, locals);
+};
+
+Scope.prototype.$evalAsync = function(expr) {
+    this.$$asyncQueue.push({scope:this,expression:expr});
 };
 
 Scope.prototype.$apply = function(expr){
