@@ -214,6 +214,28 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
+        it("执行$eval'ed函数并返回结果", function() {
+            scope.aValue = 42;
+
+            var result = scope.$eval(function(scope){
+                return scope.aValue;
+            });
+
+            expect(result).toBe(42);
+        });
+
+        it("直接转递第二个$eval参数", function() {
+            scope.aValue = 42;
+
+            var result = scope.$eval(function(scope, arg) {
+                return scope.aValue + arg;
+            }, 2);
+
+            expect(result).toBe(44);
+        });
+
+        
+
     });
 
 });
