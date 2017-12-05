@@ -5,6 +5,7 @@ function Scope() {
     this.$$watchers = [];
     this.$$lastDirtyWatch = null;
     this.$$asyncQueue = [];
+    this.$$applyAsyncQueue = [];
     this.$$phase = null;
 }
 
@@ -74,6 +75,7 @@ Scope.prototype.$eval = function(expr, locals){
 
 Scope.prototype.$evalAsync = function(expr) {
     var self = this;
+    // 这里第二个判断是判断是否有异步的事件还没开始运行,异步事件运行后
     if(!self.$$phase && !self.$$asyncQueue.length){
         setTimeout(function(){
             if(self.$$asyncQueue.length){
@@ -92,6 +94,20 @@ Scope.prototype.$apply = function(expr){
         this.$clearPhase();
         this.$digest();
     }
+};
+
+Scope.prototype.$applyAsync = function(expr) {
+    var self = this;
+    self.$$applyAsyncQueue.push(function() {
+        self.$eval(expr);
+    });
+    setTimeout(function(){
+        self.$apply(function() {
+            while(self.$$applyAsyncQueue.length) {
+                self.$$applyAsyncQueue.shift()();
+            }
+        });
+    }, 0);
 };
 
 Scope.prototype.$beginPhase = function(phase){
