@@ -472,6 +472,25 @@ describe("Scope", function () {
             }, 50);
         });
 
+        it("在digest中不包括$$postDigest", function() {
+            scope.aValue = 'original value';
+            scope.$postDigest(function() {
+                scope.aValue = 'changed value';
+            });
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.watchedValue = newValue;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.watchedValue).toBe('original value');
+
+            scope.$digest();
+            expect(scope.watchedValue).toBe('changed value');
+        });
+
     });
 
 });
