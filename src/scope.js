@@ -12,13 +12,21 @@ function Scope() {
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
+    var self = this;
     var watcher = {
         watchFn: watchFn,
         listenerFn: listenerFn || function() {},
         valueEq: !!valueEq,
         last:initWatchVal
     };
-    this.$$watchers.push(watcher);
+    this.$$watchers.unshift(watcher);
+    return function(){
+        var index = self.$$watchers.indexOf(watcher);
+        if(index >= 0){
+            self.$$watchers.splice(index,1);
+        }
+        self.$$lastDirtyWatch = null;
+    };
 };
 
 Scope.prototype.$areEqual = function(newValue, oldValue, valueEq){
@@ -70,19 +78,22 @@ Scope.prototype.$digest = function() {
 Scope.prototype.$$digestOnce = function () {
     var self = this;
     var newValue, oldValue, dirty;
-    _.forEach(this.$$watchers, function (watcher) {
+    _.forEachRight(this.$$watchers, function (watcher) {
         try{
-            newValue = watcher.watchFn(self);
-            oldValue = watcher.last;
-            if(!self.$areEqual(newValue, oldValue, watcher.valueEq)){
-                self.$$lastDirtyWatch = watcher;
-                watcher.listenerFn(newValue, 
-                    (oldValue === initWatchVal ? newValue : oldValue), 
-                    self);
-                watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
-                dirty = true;
-            }else if(self.$$lastDirtyWatch === watcher){
-                return false;
+            // 判断是否是被销毁的watch
+            if(watcher){
+                newValue = watcher.watchFn(self);
+                oldValue = watcher.last;
+                if(!self.$areEqual(newValue, oldValue, watcher.valueEq)){
+                    self.$$lastDirtyWatch = watcher;
+                    watcher.listenerFn(newValue, 
+                        (oldValue === initWatchVal ? newValue : oldValue), 
+                        self);
+                    watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
+                    dirty = true;
+                }else if(self.$$lastDirtyWatch === watcher){
+                    return false;
+                }
             }
         }catch(e){
             console.log(e);
