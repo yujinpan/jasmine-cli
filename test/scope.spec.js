@@ -474,7 +474,7 @@ describe("Scope", function () {
 
         it("在digest中不包括$$postDigest", function() {
             scope.aValue = 'original value';
-            scope.$postDigest(function() {
+            scope.$$postDigest(function() {
                 scope.aValue = 'changed value';
             });
             scope.$watch(
@@ -489,6 +489,106 @@ describe("Scope", function () {
 
             scope.$digest();
             expect(scope.watchedValue).toBe('changed value');
+        });
+
+        it("捕获watch中的异常", function() {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+            
+            scope.$watch(
+                function(scope){ throw "Error"; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$watch(
+                function(scope){ return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        it("捕获listener中的异常", function(){
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    throw "Error";
+                }
+            );
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        it("在$evalAsync中捕获异常", function(done) {
+            scope.aValue = 'abc';
+            scope.counter = 0;
+
+            scope.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$evalAsync(function(scope){
+                throw "Error";
+            });
+
+            setTimeout(function(){
+                expect(scope.counter).toBe(1);
+                done();
+            }); 
+        });
+
+        it("在$applyAsync中捕获异常", function(done) {
+            // $apply中的try捕获
+            scope.$applyAsync(function(scope){
+                throw "Error";
+            });
+            // $digest中的try捕获
+            scope.$applyAsync(function(scope){
+                throw "Error";
+            });
+            // 测试
+            scope.$applyAsync(function(scope){
+                scope.applied = true;
+            });
+
+            setTimeout(function() {
+                expect(scope.applied).toBe(true);
+                done();
+            }, 50);
+        });
+
+        it("在$$postDigest中捕获异常", function(){
+            var didRun = false;
+
+            scope.$$postDigest(function(){
+                throw "Error";
+            });
+
+            scope.$$postDigest(function(){
+                didRun = true;
+            });
+
+            scope.$digest();
+            expect(didRun).toBe(true);
         });
 
     });
