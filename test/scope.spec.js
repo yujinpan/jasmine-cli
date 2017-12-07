@@ -696,4 +696,134 @@ describe("Scope", function () {
 
     });
 
+    describe("$watchGroup", function() {
+
+        it("以watch作为数组，并用数组调用监听器", function() {
+            var gotNewValues,gotOldValues;
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+            scope.$watchGroup([
+                function(scope) { return scope.aValue; },
+                function(scope) { return scope.anotherValue; }
+            ],function(newValue, oldValue, scope) {
+                gotNewValues = newValue;
+                gotOldValues = oldValue;
+            });
+            scope.$digest();
+
+            expect(gotNewValues).toEqual([1,2]);
+            expect(gotOldValues).toEqual([1,2]);
+        });
+
+        it("每个digest调用一次监听器", function() {
+            var counter = 0;
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup([
+                function(scope) { return scope.aValue; },
+                function(scope) { return scope.anotherValue; }
+            ], function(newValues, oldValues, scope) {
+                counter++;
+            });
+
+            scope.$digest();
+            expect(counter).toEqual(1);
+        });
+
+        it("首次运行时使用相同的旧数值和新数值", function() {
+            var gotNewValues, gotOldValues;
+
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            scope.$watchGroup([
+                function(scope) { return scope.aValue; },
+                function(scope) { return scope.anotherValue; }
+            ], function(newValues, oldValues, scope) {
+                gotNewValues = newValues;
+                gotOldValues = oldValues;
+            });
+
+            scope.$digest();
+            expect(gotNewValues).toBe(gotOldValues);
+        });
+
+        it("在后续运行中对旧值和新值使用不用的数组", function() {
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            var gotNewValues, gotOldValues;
+
+            scope.$watchGroup([
+                function(scope) { return scope.aValue; },
+                function(scope) { return scope.anotherValue; }
+            ], function(newValues, oldValues, scope) {
+                gotNewValues = newValues;
+                gotOldValues = oldValues;
+            });
+
+            scope.$digest();
+            expect(gotNewValues).toBe(gotOldValues);
+
+            scope.anotherValue = 3;
+            scope.$digest();
+            expect(gotNewValues).toEqual([1,3]);
+            expect(gotOldValues).toEqual([1,2]);
+        });
+
+        it("当watch数组为空时,调用监听器一次", function() {
+            var watchArray = [];
+            var gotNewValues, gotOldValues;
+
+            scope.$watchGroup(watchArray, function(newValues, oldValues, scope){
+                gotNewValues = newValues;
+                gotOldValues = oldValues;
+            });
+
+            scope.$digest();
+
+            expect(gotNewValues).toEqual([]);
+            expect(gotOldValues).toEqual([]);
+        });
+
+        it("可以注销", function() {
+            scope.aValue = 1;
+            scope.anotherValue = 2;
+
+            var counter = 0;
+
+            var destroyWatchs = scope.$watchGroup([
+                function(scope) { return scope.aValue; },
+                function(scope) { return scope.anotherValue; }
+            ], function(newValues, oldValues, scope) {
+                counter++;
+            });
+
+            scope.$digest();
+            expect(counter).toBe(1);
+
+            destroyWatchs();
+            scope.aValue = 3;
+            scope.$digest();
+            expect(counter).toBe(1);
+
+        });
+
+        it("当首次注销时不会触发监听", function() {
+            var counter = 0;
+
+            var destroyGroup = scope.$watchGroup([],function(newValues, oldValues, scope) {
+                counter++;
+            });
+
+            destroyGroup();
+
+            scope.$digest();
+            expect(counter).toBe(0);
+        });
+
+    });
+
 });
