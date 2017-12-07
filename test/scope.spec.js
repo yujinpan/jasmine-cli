@@ -10,13 +10,13 @@ describe("Scope", function () {
         scope = new Scope();
     });
 
-    it("可以被构建并用作对象", function () {
+    /* xit("可以被构建并用作对象", function () {
         scope.aProperty = 1;
 
         expect(scope.aProperty).toBe(1);
     });
 
-    describe("Digest", function () {
+    xdescribe("Digest", function () {
 
         it("在$digest时能调用监听器函数", function () {
             var watchFn = function () { return 'wat'; };
@@ -696,7 +696,7 @@ describe("Scope", function () {
 
     });
 
-    describe("$watchGroup", function() {
+    xdescribe("$watchGroup", function() {
 
         it("以watch作为数组，并用数组调用监听器", function() {
             var gotNewValues,gotOldValues;
@@ -822,6 +822,94 @@ describe("Scope", function () {
 
             scope.$digest();
             expect(counter).toBe(0);
+        });
+
+    }); */
+
+    describe("Inheritance", function() {
+        
+        it("inherits the parent's properties", function() {
+            var parent = new Scope();
+            parent.aValue = [1,2,3];
+
+            var child = parent.$new();
+
+            expect(child.aValue).toEqual([1,2,3]);
+        });
+
+        it("不会导致父级继承其属性", function(){
+            var parent = new Scope();
+
+            var child = parent.$new();
+            child.aValue = [1,2,3];
+
+            expect(parent.aValue).toBeUndefined();
+        });
+
+        it("再定义的时候继承父类的属性", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.aValue = [1,2,3];
+
+            expect(child.aValue).toEqual([1,2,3]);
+        });
+
+        it("可以操纵父scope的属性", function(){
+            var parent = new Scope();
+            var child = parent.$new();
+            parent.aValue = [1,2,3];
+
+            child.aValue.push(4);
+
+            expect(parent.aValue).toEqual([1,2,3,4]);
+        });
+
+        it("不digest其父母", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.aValue = 'abc';
+            parent.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            child.$digest();
+            expect(child.aValueWas).toBeUndefined();
+        });
+
+        it("保留其子女的记录", function() {
+            var parent = new Scope();
+            var child1 = parent.$new();
+            var child2 = parent.$new();
+            var child2_1 = child2.$new();
+
+            expect(parent.$$children.length).toBe(2);
+            expect(parent.$$children[0]).toBe(child1);
+            expect(parent.$$children[1]).toBe(child2);
+
+            expect(child1.$$children.length).toBe(0);
+            expect(child2.$$children.length).toBe(1);
+            expect(child2.$$children[0]).toBe(child2_1);
+        });
+
+        it("digests its children", function() {
+            var parent = new Scope();
+            var child = parent.$new();
+
+            parent.aValue = 'abc';
+            child.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            parent.$digest();
+            expect(child.aValueWas).toBe('abc');
         });
 
     });
