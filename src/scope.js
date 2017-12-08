@@ -8,6 +8,7 @@ function Scope() {
     this.$$applyAsyncQueue = [];
     this.$$applyAsyncId = null;
     this.$$postDigestQueue = [];
+    this.$root = this;
     this.$$children = [];
     this.$$phase = null;
 }
@@ -42,12 +43,13 @@ Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
         last:initWatchVal
     };
     this.$$watchers.unshift(watcher);
+    this.$root.$$lastDirtyWatch = null;
     return function(){
         var index = self.$$watchers.indexOf(watcher);
         if(index >= 0){
             self.$$watchers.splice(index,1);
         }
-        self.$$lastDirtyWatch = null;
+        self.$root.$$lastDirtyWatch = null;
     };
 };
 
@@ -65,7 +67,7 @@ Scope.prototype.$digest = function() {
     var ttl = 10;
     var dirty;
     var asyncTask;
-    this.$$lastDirtyWatch = null;
+    this.$root.$$lastDirtyWatch = null;
     if(this.$$applyAsyncId) {
         clearTimeout(this.$$applyAsyncId);
         this.$$flushApplyAsync();
@@ -110,13 +112,13 @@ Scope.prototype.$$digestOnce = function () {
                     newValue = watcher.watchFn(self);
                     oldValue = watcher.last;
                     if(!self.$areEqual(newValue, oldValue, watcher.valueEq)){
-                        self.$$lastDirtyWatch = watcher;
+                        self.$root.$$lastDirtyWatch = watcher;
                         watcher.listenerFn(newValue, 
                             (oldValue === initWatchVal ? newValue : oldValue), 
                             self);
                         watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
                         dirty = true;
-                    }else if(self.$$lastDirtyWatch === watcher){
+                    }else if(self.$root.$$lastDirtyWatch === watcher){
                         continueLoop = false;
                         return false;
                     }
@@ -140,7 +142,7 @@ Scope.prototype.$evalAsync = function(expr) {
     if(!self.$$phase && !self.$$asyncQueue.length){
         setTimeout(function(){
             if(self.$$asyncQueue.length){
-                self.$digest();
+                self.$root.$digest();
             }
         }, 0);
     }
@@ -153,7 +155,7 @@ Scope.prototype.$apply = function(expr){
         this.$eval(expr);
     }finally{
         this.$clearPhase();
-        this.$digest();
+        this.$root.$digest();
     }
 };
 
