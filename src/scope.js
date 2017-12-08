@@ -13,11 +13,16 @@ function Scope() {
     this.$$phase = null;
 }
 
-Scope.prototype.$new = function (){
+Scope.prototype.$new = function (isolated){
     // return Object.create(this);
-    var ChildScope = function() {};
-    ChildScope.prototype = this;
-    var child = new ChildScope();
+    var child;
+    if(isolated){
+        child = new Scope();
+    }else{
+        var ChildScope = function() {};
+        ChildScope.prototype = this;
+        child = new ChildScope();
+    }
     this.$$children.push(child);
     child.$$watchers = [];
     child.$$children = [];
@@ -100,7 +105,6 @@ Scope.prototype.$digest = function() {
 };
 
 Scope.prototype.$$digestOnce = function () {
-    var self = this;
     var dirty;
     var continueLoop = true;
     this.$$everyScope(function(scope){
@@ -109,16 +113,16 @@ Scope.prototype.$$digestOnce = function () {
             try{
                 // 判断是否是被销毁的watch
                 if(watcher){
-                    newValue = watcher.watchFn(self);
+                    newValue = watcher.watchFn(scope);
                     oldValue = watcher.last;
-                    if(!self.$areEqual(newValue, oldValue, watcher.valueEq)){
-                        self.$root.$$lastDirtyWatch = watcher;
+                    if(!scope.$areEqual(newValue, oldValue, watcher.valueEq)){
+                        scope.$root.$$lastDirtyWatch = watcher;
                         watcher.listenerFn(newValue, 
                             (oldValue === initWatchVal ? newValue : oldValue), 
-                            self);
+                            scope);
                         watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
                         dirty = true;
-                    }else if(self.$root.$$lastDirtyWatch === watcher){
+                    }else if(scope.$root.$$lastDirtyWatch === watcher){
                         continueLoop = false;
                         return false;
                     }

@@ -953,6 +953,47 @@ describe("Scope", function () {
             });
         });
 
+        it("隔离时无法访问父级属性", function() {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            parent.aValue = 'abc';
+
+            expect(child.aValue).toBeUndefined();
+        });
+
+        it("隔离时不能监视其父母的属性", function() {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            parent.aValue = 'abc';
+            child.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            child.$digest();
+            expect(child.aValueWas).toBeUndefined();
+        });
+
+        it("digest其隔离的子集", function() {
+            var parent = new Scope();
+            var child = parent.$new(true);
+            
+            child.aValue = 'abc';
+            child.$watch(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.aValueWas = newValue;
+                }
+            );
+
+            parent.$digest();
+            expect(child.aValueWas).toBe('abc');
+        });
+
     });
 
 });
