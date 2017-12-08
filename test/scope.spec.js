@@ -10,13 +10,13 @@ describe("Scope", function () {
         scope = new Scope();
     });
 
-    /* xit("可以被构建并用作对象", function () {
+    it("可以被构建并用作对象", function () {
         scope.aProperty = 1;
 
         expect(scope.aProperty).toBe(1);
     });
 
-    xdescribe("Digest", function () {
+    describe("Digest", function () {
 
         it("在$digest时能调用监听器函数", function () {
             var watchFn = function () { return 'wat'; };
@@ -28,21 +28,21 @@ describe("Scope", function () {
             expect(listenerFn).toHaveBeenCalled();
         });
 
-        it("以scope作为参数调用watch函数", function() {
+        it("以scope作为参数调用watch函数", function () {
             var watchFn = jasmine.createSpy();
-            var listenerFn = function() {};
+            var listenerFn = function () { };
             scope.$watch(watchFn, listenerFn);
 
             scope.$digest();
             expect(watchFn).toHaveBeenCalledWith(scope);
         });
 
-        it("当观察值改变时调用监听器功能", function() {
+        it("当观察值改变时调用监听器功能", function () {
             scope.someValue = '1';
             scope.counter = 0;
             scope.$watch(
-                function(scope) { return scope.someValue; },
-                function(newValue, oldValue, scope){ scope.counter ++; }
+                function (scope) { return scope.someValue; },
+                function (newValue, oldValue, scope) { scope.counter++; }
             );
 
             expect(scope.counter).toBe(0);
@@ -59,13 +59,13 @@ describe("Scope", function () {
             expect(scope.counter).toBe(2);
         });
 
-        it("当watch的值为undefined的时候调用监听器", function() {
+        it("当watch的值为undefined的时候调用监听器", function () {
 
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.someValue; },
-                function(newValue, oldValue, scope) { scope.counter++; }
+                function (scope) { return scope.someValue; },
+                function (newValue, oldValue, scope) { scope.counter++; }
             );
 
             scope.$digest();
@@ -73,13 +73,13 @@ describe("Scope", function () {
 
         });
 
-        it("第一次调用具有新值的监听器作为旧值", function() {
+        it("第一次调用具有新值的监听器作为旧值", function () {
             scope.someValue = 123;
             var oldValueGiven;
 
             scope.$watch(
-                function(scope) { return scope.someValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.someValue; },
+                function (newValue, oldValue, scope) {
                     oldValueGiven = oldValue;
                 }
             );
@@ -88,7 +88,7 @@ describe("Scope", function () {
             expect(oldValueGiven).toBe(123);
         });
 
-        it("可能有观察者省略了监听功能", function() {
+        it("可能有观察者省略了监听功能", function () {
 
             var watchFn = jasmine.createSpy().and.returnValue('something');
             scope.$watch(watchFn);
@@ -97,23 +97,23 @@ describe("Scope", function () {
             expect(watchFn).toHaveBeenCalled();
         });
 
-        it("在相同的digest中触发链接的观察者", function() {
+        it("在相同的digest中触发链接的观察者", function () {
 
             scope.name = 'Jane';
 
             scope.$watch(
-                function(scope) { return scope.nameUpper; },
-                function(newValue, oldValue, scope){
-                    if(newValue){
-                        scope.initial = newValue.substring(0,1) + '.';
+                function (scope) { return scope.nameUpper; },
+                function (newValue, oldValue, scope) {
+                    if (newValue) {
+                        scope.initial = newValue.substring(0, 1) + '.';
                     }
                 }
             );
 
             scope.$watch(
-                function(scope) { return scope.name; },
-                function(newValue, oldValue, scope){
-                    if(newValue){
+                function (scope) { return scope.name; },
+                function (newValue, oldValue, scope) {
+                    if (newValue) {
                         scope.nameUpper = newValue.toUpperCase();
                     }
                 }
@@ -128,41 +128,41 @@ describe("Scope", function () {
             expect(scope.initial).toBe('B.');
         });
 
-        it("10次迭代后台放弃watch", function() {
+        it("10次迭代后台放弃watch", function () {
 
             scope.counterA = 0;
             scope.counterB = 0;
 
             scope.$watch(
-                function(scope) { return scope.counterA; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.counterA; },
+                function (newValue, oldValue, scope) {
                     scope.counterB++;
                 }
             );
 
             scope.$watch(
-                function(scope) { return scope.counterB; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.counterB; },
+                function (newValue, oldValue, scope) {
                     scope.counterA++;
                 }
             );
 
-            expect((function(){scope.$digest();})).toThrow();
+            expect((function () { scope.$digest(); })).toThrow();
         });
 
-        it("当最后的watch干净时结束digest", function() {
+        it("当最后的watch干净时结束digest", function () {
 
             scope.array = _.range(100);
             var watchExecutions = 0;
 
-            _.times(100, function(i) {
+            _.times(100, function (i) {
 
                 scope.$watch(
-                    function(scope){
+                    function (scope) {
                         watchExecutions++;
                         return scope.array[i];
                     },
-                    function(newValue, oldValue, scope){}
+                    function (newValue, oldValue, scope) { }
                 );
             });
 
@@ -174,14 +174,14 @@ describe("Scope", function () {
             expect(watchExecutions).toBe(301);
         });
 
-        it("如果启用，则根据值进行比较", function() {
+        it("如果启用，则根据值进行比较", function () {
 
-            scope.aValue = [1,2,3];
+            scope.aValue = [1, 2, 3];
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 },
                 true
@@ -196,13 +196,13 @@ describe("Scope", function () {
 
         });
 
-        it("正确的处理NaN", function() {
-            scope.number = 0/0;
+        it("正确的处理NaN", function () {
+            scope.number = 0 / 0;
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.number; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.number; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -214,33 +214,33 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
-        it("执行$eval'ed函数并返回结果", function() {
+        it("执行$eval'ed函数并返回结果", function () {
             scope.aValue = 42;
 
-            var result = scope.$eval(function(scope){
+            var result = scope.$eval(function (scope) {
                 return scope.aValue;
             });
 
             expect(result).toBe(42);
         });
 
-        it("直接转递第二个$eval参数", function() {
+        it("直接转递第二个$eval参数", function () {
             scope.aValue = 42;
 
-            var result = scope.$eval(function(scope, arg) {
+            var result = scope.$eval(function (scope, arg) {
                 return scope.aValue + arg;
             }, 2);
 
             expect(result).toBe(44);
         });
 
-        it("执行$apply'ed函数并启动$digest", function (){
+        it("执行$apply'ed函数并启动$digest", function () {
             scope.aValue = 'someValue';
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -248,21 +248,21 @@ describe("Scope", function () {
             scope.$digest();
             expect(scope.counter).toBe(1);
 
-            scope.$apply(function(scope){
+            scope.$apply(function (scope) {
                 scope.aValue = 'anotherValue';
             });
             expect(scope.counter).toBe(2);
         });
 
-        it("稍后在同一周期内执行$evalAsync函数", function() {
-            scope.aValue = [1,2,3];
+        it("稍后在同一周期内执行$evalAsync函数", function () {
+            scope.aValue = [1, 2, 3];
             scope.asyncEvaluated = false;
             scope.asyncEvaluatedImmediately = false;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
-                    scope.$evalAsync(function(scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
+                    scope.$evalAsync(function (scope) {
                         scope.asyncEvaluated = true;
                     });
                     scope.asyncEvaluatedImmediately = scope.asyncEvaluated;
@@ -274,39 +274,39 @@ describe("Scope", function () {
             expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
-        it("执行有watch函数添加的$evalAsync函数", function() {
-            scope.aValue = [1,2,3];
+        it("执行有watch函数添加的$evalAsync函数", function () {
+            scope.aValue = [1, 2, 3];
             scope.asyncEvaluated = false;
 
             scope.$watch(
-                function(scope){
-                    if(!scope.asyncEvaluated){
-                        scope.$evalAsync(function(scope){
+                function (scope) {
+                    if (!scope.asyncEvaluated) {
+                        scope.$evalAsync(function (scope) {
                             scope.asyncEvaluated = true;
                         });
                     }
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope){}
+                function (newValue, oldValue, scope) { }
             );
 
             scope.$digest();
             expect(scope.asyncEvaluated).toBe(true);
         });
 
-        it("执行$evalAsync的功能,即使不脏", function() {
-            scope.aValue = [1,2,3];
+        it("执行$evalAsync的功能,即使不脏", function () {
+            scope.aValue = [1, 2, 3];
             scope.asyncEvaluatedTimes = 0;
             scope.$watch(
-                function(scope){
-                    if(scope.asyncEvaluatedTimes < 2){
-                        scope.$evalAsync(function(scope){
+                function (scope) {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsync(function (scope) {
                             scope.asyncEvaluatedTimes++;
                         });
                     }
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope) {}
+                function (newValue, oldValue, scope) { }
             );
 
             scope.$digest();
@@ -314,37 +314,37 @@ describe("Scope", function () {
             expect(scope.asyncEvaluatedTimes).toBe(2);
         });
 
-        it("最终会暂停watcher添加的$evalAsyncs", function() {
-            scope.aValue = [1,2,3];
-            
+        it("最终会暂停watcher添加的$evalAsyncs", function () {
+            scope.aValue = [1, 2, 3];
+
             scope.$watch(
-                function(scope){
-                    scope.$evalAsync(function(scope){});
+                function (scope) {
+                    scope.$evalAsync(function (scope) { });
                     return scope.aValue;
                 },
-                function(newValu, oldValue, scope){}
+                function (newValu, oldValue, scope) { }
             );
 
-            expect(function() {scope.$digest();}).toThrow();
+            expect(function () { scope.$digest(); }).toThrow();
         });
 
-        it("有一个$$phase字段，其值就是当前digest阶段名称", function() {
-            scope.aValue = [1,2,3];
+        it("有一个$$phase字段，其值就是当前digest阶段名称", function () {
+            scope.aValue = [1, 2, 3];
             scope.phaseInWatchFunction = undefined;
             scope.phaseInListenerFunction = undefined;
             scope.phaseInApplyFunction = undefined;
 
             scope.$watch(
-                function(scope) {
+                function (scope) {
                     scope.phaseInWatchFunction = scope.$$phase;
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope){
+                function (newValue, oldValue, scope) {
                     scope.phaseInListenerFunction = scope.$$phase;
                 }
             );
 
-            scope.$apply(function(scope){
+            scope.$apply(function (scope) {
                 scope.phaseInApplyFunction = scope.$$phase;
             });
 
@@ -353,60 +353,60 @@ describe("Scope", function () {
             expect(scope.phaseInApplyFunction).toBe('$apply');
         });
 
-        it("在$evalAsync中安排一个digest", function(done) {
+        it("在$evalAsync中安排一个digest", function (done) {
             scope.aValue = 'abc';
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
-            scope.$evalAsync(function(scope) {
+            scope.$evalAsync(function (scope) {
 
             });
 
             expect(scope.counter).toBe(0);
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(scope.counter).toBe(1);
                 done();
             }, 50);
-            
+
         });
 
-        it("allows async $apply with $applyAsync", function(done) {
+        it("allows async $apply with $applyAsync", function (done) {
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
             scope.$digest();
             expect(scope.counter).toBe(1);
-            
-            scope.$applyAsync(function(scope) {
+
+            scope.$applyAsync(function (scope) {
                 scope.aValue = 'abc';
             });
             expect(scope.counter).toBe(1);
-            setTimeout(function() {
+            setTimeout(function () {
                 expect(scope.counter).toBe(2);
                 done();
             }, 50);
         });
 
-        it("never executes $applyAsync'ed function in the same cycle", function(done) {
-            scope.aValue = [1,2,3];
+        it("never executes $applyAsync'ed function in the same cycle", function (done) {
+            scope.aValue = [1, 2, 3];
             scope.asyncApplied = false;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
-                    scope.$applyAsync(function(scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
+                    scope.$applyAsync(function (scope) {
                         scope.asyncApplied = true;
                     });
                 }
@@ -414,51 +414,51 @@ describe("Scope", function () {
 
             scope.$digest();
             expect(scope.asyncApplied).toBe(false);
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(scope.asyncApplied).toBe(true);
                 done();
             }, 50);
         });
 
-        it("将许多调用合并到$applyAsync", function(done) {
+        it("将许多调用合并到$applyAsync", function (done) {
             scope.counter = 0;
 
             scope.$watch(
-                function(scope){
+                function (scope) {
                     scope.counter++;
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope){}
+                function (newValue, oldValue, scope) { }
             );
 
-            scope.$applyAsync(function(scope) {
+            scope.$applyAsync(function (scope) {
                 scope.aValue = 'abc';
             });
-            scope.$applyAsync(function(scope) {
+            scope.$applyAsync(function (scope) {
                 scope.aValue = 'def';
             });
 
-            setTimeout(function() {
+            setTimeout(function () {
                 expect(scope.counter).toBe(2);
                 done();
             }, 50);
         });
 
-        it("如果先digest,则取消并应用$applyAsync", function(done) {
+        it("如果先digest,则取消并应用$applyAsync", function (done) {
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) {
+                function (scope) {
                     scope.counter++;
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope){}
+                function (newValue, oldValue, scope) { }
             );
 
-            scope.$applyAsync(function(scope){
+            scope.$applyAsync(function (scope) {
                 scope.aValue = 'abc';
             });
-            scope.$applyAsync(function(scope){
+            scope.$applyAsync(function (scope) {
                 scope.aValue = 'def';
             });
 
@@ -466,20 +466,20 @@ describe("Scope", function () {
             expect(scope.counter).toBe(2);
             expect(scope.aValue).toEqual('def');
 
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(scope.counter).toBe(2);
                 done();
             }, 50);
         });
 
-        it("在digest中不包括$$postDigest", function() {
+        it("在digest中不包括$$postDigest", function () {
             scope.aValue = 'original value';
-            scope.$$postDigest(function() {
+            scope.$$postDigest(function () {
                 scope.aValue = 'changed value';
             });
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.watchedValue = newValue;
                 }
             );
@@ -491,20 +491,20 @@ describe("Scope", function () {
             expect(scope.watchedValue).toBe('changed value');
         });
 
-        it("捕获watch中的异常", function() {
+        it("捕获watch中的异常", function () {
             scope.aValue = 'abc';
             scope.counter = 0;
-            
+
             scope.$watch(
-                function(scope){ throw "Error"; },
-                function(newValue, oldValue, scope) {
+                function (scope) { throw "Error"; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
             scope.$watch(
-                function(scope){ return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -513,20 +513,20 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
-        it("捕获listener中的异常", function(){
+        it("捕获listener中的异常", function () {
             scope.aValue = 'abc';
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     throw "Error";
                 }
             );
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -535,55 +535,55 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
-        it("在$evalAsync中捕获异常", function(done) {
+        it("在$evalAsync中捕获异常", function (done) {
             scope.aValue = 'abc';
             scope.counter = 0;
 
             scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
-            scope.$evalAsync(function(scope){
+            scope.$evalAsync(function (scope) {
                 throw "Error";
             });
 
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(scope.counter).toBe(1);
                 done();
-            }); 
+            });
         });
 
-        it("在$applyAsync中捕获异常", function(done) {
+        it("在$applyAsync中捕获异常", function (done) {
             // $apply中的try捕获
-            scope.$applyAsync(function(scope){
+            scope.$applyAsync(function (scope) {
                 throw "Error";
             });
             // $digest中的try捕获
-            scope.$applyAsync(function(scope){
+            scope.$applyAsync(function (scope) {
                 throw "Error";
             });
             // 测试
-            scope.$applyAsync(function(scope){
+            scope.$applyAsync(function (scope) {
                 scope.applied = true;
             });
 
-            setTimeout(function() {
+            setTimeout(function () {
                 expect(scope.applied).toBe(true);
                 done();
             }, 50);
         });
 
-        it("在$$postDigest中捕获异常", function(){
+        it("在$$postDigest中捕获异常", function () {
             var didRun = false;
 
-            scope.$$postDigest(function(){
+            scope.$$postDigest(function () {
                 throw "Error";
             });
 
-            scope.$$postDigest(function(){
+            scope.$$postDigest(function () {
                 didRun = true;
             });
 
@@ -591,13 +591,13 @@ describe("Scope", function () {
             expect(didRun).toBe(true);
         });
 
-        it("允许使用销毁$watch", function() {
+        it("允许使用销毁$watch", function () {
             scope.aValue = 'abc';
             scope.counter = 0;
 
             var destroyWatch = scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -614,57 +614,57 @@ describe("Scope", function () {
             expect(scope.counter).toBe(2);
         });
 
-        it("允许在digest期间销毁$watch", function(){
+        it("允许在digest期间销毁$watch", function () {
             scope.aValue = 'abc';
             var watchCalls = [];
 
             scope.$watch(
-                function(scope){
+                function (scope) {
                     watchCalls.push('first');
                     return scope.aValue;
                 }
             );
-            
+
             var destoryWatch = scope.$watch(
-                function(scope) {
+                function (scope) {
                     watchCalls.push('second');
                     destoryWatch();
                 }
             );
 
             scope.$watch(
-                function(scope) {
+                function (scope) {
                     watchCalls.push('third');
                     return scope.aValue;
                 }
             );
 
             scope.$digest();
-            expect(watchCalls).toEqual(['first','second','third','first','third']);
+            expect(watchCalls).toEqual(['first', 'second', 'third', 'first', 'third']);
         });
 
-        it("允许$watch在digest期间销毁另一个", function() {
+        it("允许$watch在digest期间销毁另一个", function () {
             scope.aValue = 'abc';
             scope.counter = 0;
-            
+
             scope.$watch(
-                function(scope) {
+                function (scope) {
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope) {
+                function (newValue, oldValue, scope) {
                     destroyWatch();
                 }
             );
 
             var destroyWatch = scope.$watch(
-                function(scope) {}
+                function (scope) { }
             );
 
             scope.$watch(
-                function(scope) {
+                function (scope) {
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope) {
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -673,19 +673,19 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
-        it("允许在digest期间摧毁几块$watch", function() {
+        it("允许在digest期间摧毁几块$watch", function () {
             scope.aValue = 'abc';
             scope.counter = 0;
 
             var destroyWatch1 = scope.$watch(
-                function(scope) {
+                function (scope) {
                     destroyWatch1();
                     destroyWatch2();
                 }
             );
             var destroyWatch2 = scope.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
@@ -696,35 +696,35 @@ describe("Scope", function () {
 
     });
 
-    xdescribe("$watchGroup", function() {
+    describe("$watchGroup", function () {
 
-        it("以watch作为数组，并用数组调用监听器", function() {
-            var gotNewValues,gotOldValues;
+        it("以watch作为数组，并用数组调用监听器", function () {
+            var gotNewValues, gotOldValues;
             scope.aValue = 1;
             scope.anotherValue = 2;
             scope.$watchGroup([
-                function(scope) { return scope.aValue; },
-                function(scope) { return scope.anotherValue; }
-            ],function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (scope) { return scope.anotherValue; }
+            ], function (newValue, oldValue, scope) {
                 gotNewValues = newValue;
                 gotOldValues = oldValue;
             });
             scope.$digest();
 
-            expect(gotNewValues).toEqual([1,2]);
-            expect(gotOldValues).toEqual([1,2]);
+            expect(gotNewValues).toEqual([1, 2]);
+            expect(gotOldValues).toEqual([1, 2]);
         });
 
-        it("每个digest调用一次监听器", function() {
+        it("每个digest调用一次监听器", function () {
             var counter = 0;
 
             scope.aValue = 1;
             scope.anotherValue = 2;
 
             scope.$watchGroup([
-                function(scope) { return scope.aValue; },
-                function(scope) { return scope.anotherValue; }
-            ], function(newValues, oldValues, scope) {
+                function (scope) { return scope.aValue; },
+                function (scope) { return scope.anotherValue; }
+            ], function (newValues, oldValues, scope) {
                 counter++;
             });
 
@@ -732,16 +732,16 @@ describe("Scope", function () {
             expect(counter).toEqual(1);
         });
 
-        it("首次运行时使用相同的旧数值和新数值", function() {
+        it("首次运行时使用相同的旧数值和新数值", function () {
             var gotNewValues, gotOldValues;
 
             scope.aValue = 1;
             scope.anotherValue = 2;
 
             scope.$watchGroup([
-                function(scope) { return scope.aValue; },
-                function(scope) { return scope.anotherValue; }
-            ], function(newValues, oldValues, scope) {
+                function (scope) { return scope.aValue; },
+                function (scope) { return scope.anotherValue; }
+            ], function (newValues, oldValues, scope) {
                 gotNewValues = newValues;
                 gotOldValues = oldValues;
             });
@@ -750,16 +750,16 @@ describe("Scope", function () {
             expect(gotNewValues).toBe(gotOldValues);
         });
 
-        it("在后续运行中对旧值和新值使用不用的数组", function() {
+        it("在后续运行中对旧值和新值使用不用的数组", function () {
             scope.aValue = 1;
             scope.anotherValue = 2;
 
             var gotNewValues, gotOldValues;
 
             scope.$watchGroup([
-                function(scope) { return scope.aValue; },
-                function(scope) { return scope.anotherValue; }
-            ], function(newValues, oldValues, scope) {
+                function (scope) { return scope.aValue; },
+                function (scope) { return scope.anotherValue; }
+            ], function (newValues, oldValues, scope) {
                 gotNewValues = newValues;
                 gotOldValues = oldValues;
             });
@@ -769,15 +769,15 @@ describe("Scope", function () {
 
             scope.anotherValue = 3;
             scope.$digest();
-            expect(gotNewValues).toEqual([1,3]);
-            expect(gotOldValues).toEqual([1,2]);
+            expect(gotNewValues).toEqual([1, 3]);
+            expect(gotOldValues).toEqual([1, 2]);
         });
 
-        it("当watch数组为空时,调用监听器一次", function() {
+        it("当watch数组为空时,调用监听器一次", function () {
             var watchArray = [];
             var gotNewValues, gotOldValues;
 
-            scope.$watchGroup(watchArray, function(newValues, oldValues, scope){
+            scope.$watchGroup(watchArray, function (newValues, oldValues, scope) {
                 gotNewValues = newValues;
                 gotOldValues = oldValues;
             });
@@ -788,16 +788,16 @@ describe("Scope", function () {
             expect(gotOldValues).toEqual([]);
         });
 
-        it("可以注销", function() {
+        it("可以注销", function () {
             scope.aValue = 1;
             scope.anotherValue = 2;
 
             var counter = 0;
 
             var destroyWatchs = scope.$watchGroup([
-                function(scope) { return scope.aValue; },
-                function(scope) { return scope.anotherValue; }
-            ], function(newValues, oldValues, scope) {
+                function (scope) { return scope.aValue; },
+                function (scope) { return scope.anotherValue; }
+            ], function (newValues, oldValues, scope) {
                 counter++;
             });
 
@@ -811,10 +811,10 @@ describe("Scope", function () {
 
         });
 
-        it("当首次注销时不会触发监听", function() {
+        it("当首次注销时不会触发监听", function () {
             var counter = 0;
 
-            var destroyGroup = scope.$watchGroup([],function(newValues, oldValues, scope) {
+            var destroyGroup = scope.$watchGroup([], function (newValues, oldValues, scope) {
                 counter++;
             });
 
@@ -824,55 +824,55 @@ describe("Scope", function () {
             expect(counter).toBe(0);
         });
 
-    }); */
+    });
 
-    describe("Inheritance", function() {
-        
-        it("inherits the parent's properties", function() {
+    describe("Inheritance", function () {
+
+        it("inherits the parent's properties", function () {
             var parent = new Scope();
-            parent.aValue = [1,2,3];
+            parent.aValue = [1, 2, 3];
 
             var child = parent.$new();
 
-            expect(child.aValue).toEqual([1,2,3]);
+            expect(child.aValue).toEqual([1, 2, 3]);
         });
 
-        it("不会导致父级继承其属性", function(){
+        it("不会导致父级继承其属性", function () {
             var parent = new Scope();
 
             var child = parent.$new();
-            child.aValue = [1,2,3];
+            child.aValue = [1, 2, 3];
 
             expect(parent.aValue).toBeUndefined();
         });
 
-        it("再定义的时候继承父类的属性", function() {
+        it("再定义的时候继承父类的属性", function () {
             var parent = new Scope();
             var child = parent.$new();
 
-            parent.aValue = [1,2,3];
+            parent.aValue = [1, 2, 3];
 
-            expect(child.aValue).toEqual([1,2,3]);
+            expect(child.aValue).toEqual([1, 2, 3]);
         });
 
-        it("可以操纵父scope的属性", function(){
+        it("可以操纵父scope的属性", function () {
             var parent = new Scope();
             var child = parent.$new();
-            parent.aValue = [1,2,3];
+            parent.aValue = [1, 2, 3];
 
             child.aValue.push(4);
 
-            expect(parent.aValue).toEqual([1,2,3,4]);
+            expect(parent.aValue).toEqual([1, 2, 3, 4]);
         });
 
-        it("不digest其父母", function() {
+        it("不digest其父母", function () {
             var parent = new Scope();
             var child = parent.$new();
 
             parent.aValue = 'abc';
             parent.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.aValueWas = newValue;
                 }
             );
@@ -881,7 +881,7 @@ describe("Scope", function () {
             expect(child.aValueWas).toBeUndefined();
         });
 
-        it("保留其子女的记录", function() {
+        it("保留其子女的记录", function () {
             var parent = new Scope();
             var child1 = parent.$new();
             var child2 = parent.$new();
@@ -896,14 +896,14 @@ describe("Scope", function () {
             expect(child2.$$children[0]).toBe(child2_1);
         });
 
-        it("digests its children", function() {
+        it("digests its children", function () {
             var parent = new Scope();
             var child = parent.$new();
 
             parent.aValue = 'abc';
             child.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.aValueWas = newValue;
                 }
             );
@@ -912,7 +912,7 @@ describe("Scope", function () {
             expect(child.aValueWas).toBe('abc');
         });
 
-        it("digests from root on $apply", function() {
+        it("digests from root on $apply", function () {
             var parent = new Scope();
             var child = parent.$new();
             var child2 = child.$new();
@@ -920,18 +920,18 @@ describe("Scope", function () {
             parent.aValue = 'abc';
             parent.counter = 0;
             parent.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope){
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
-            child2.$apply(function(scope) {});
+            child2.$apply(function (scope) { });
 
             expect(parent.counter).toBe(1);
         });
 
-        it("从$evalAsync的根目录安排一个$digest", function(done) {
+        it("从$evalAsync的根目录安排一个$digest", function (done) {
             var parent = new Scope();
             var child = parent.$new();
             var child2 = child.$new();
@@ -939,21 +939,21 @@ describe("Scope", function () {
             parent.aValue = 'abc';
             parent.counter = 0;
             parent.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 }
             );
 
-            child2.$evalAsync(function(scope){});
+            child2.$evalAsync(function (scope) { });
 
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(parent.counter).toBe(1);
                 done();
             });
         });
 
-        it("隔离时无法访问父级属性", function() {
+        it("隔离时无法访问父级属性", function () {
             var parent = new Scope();
             var child = parent.$new(true);
 
@@ -962,14 +962,14 @@ describe("Scope", function () {
             expect(child.aValue).toBeUndefined();
         });
 
-        it("隔离时不能监视其父母的属性", function() {
+        it("隔离时不能监视其父母的属性", function () {
             var parent = new Scope();
             var child = parent.$new(true);
 
             parent.aValue = 'abc';
             child.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.aValueWas = newValue;
                 }
             );
@@ -978,20 +978,120 @@ describe("Scope", function () {
             expect(child.aValueWas).toBeUndefined();
         });
 
-        it("digest其隔离的子集", function() {
+        it("digest其隔离的子集", function () {
             var parent = new Scope();
             var child = parent.$new(true);
-            
+
             child.aValue = 'abc';
             child.$watch(
-                function(scope) { return scope.aValue; },
-                function(newValue, oldValue, scope) {
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
                     scope.aValueWas = newValue;
                 }
             );
 
             parent.$digest();
             expect(child.aValueWas).toBe('abc');
+        });
+
+        it("$apply在root scope中执行digest", function () {
+            var parent = new Scope();
+            var child = parent.$new(true);
+            var child2 = child.$new();
+
+            parent.aValue = 'abc';
+            parent.counter = 0;
+            parent.$watch(
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            child2.$apply(function (scope) { });
+            expect(parent.counter).toBe(1);
+        });
+
+        it("在隔离时从$evalAsync的root scope上执行digest", function (done) {
+            var parent = new Scope();
+            var child = parent.$new(true);
+            var child2 = child.$new();
+
+            parent.aValue = 'abc';
+            parent.counter = 0;
+            parent.$watch(
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            child2.$evalAsync(function (scope) { });
+            setTimeout(function () {
+                expect(parent.counter).toBe(1);
+                done();
+            }, 50);
+        });
+
+        it("在隔离的作用域上执行$evalAsync", function (done) {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            child.$evalAsync(function (scope) {
+                scope.didEvalAsync = true;
+            });
+
+            setTimeout(function () {
+                expect(child.didEvalAsync).toBe(true);
+                done();
+            });
+        });
+
+        it("在隔离的作用域上执行$$postDigest", function () {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            child.$$postDigest(function () {
+                child.didPostDigest = true;
+            });
+            parent.$digest();
+
+            expect(child.didPostDigest).toBe(true);
+        });
+
+        it("在隔离时执行root上的$applyAsync", function (done) {
+            var parent = new Scope();
+            var child = parent.$new(true);
+
+            parent.counter = 0;
+            parent.$watch(
+                function (scope) {
+                    scope.counter++;
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) { }
+            );
+            child.aValue = [1];
+            child.$watch(
+                function (scope) { return scope.aValue; },
+                function (newValue, oldValue, scope) {
+                    scope.aValue.push(2);
+                    setTimeout(function () {
+                        scope.$applyAsync(function () {
+                            scope.aValue.push(3);
+                        });
+                    }, 0);
+                }
+            );
+
+            child.$digest();
+            expect(child.aValue).toEqual([1, 2]);
+            expect(parent.counter).toBe(0);
+            setTimeout(function () {
+                expect(child.aValue).toEqual([1, 2, 3]);
+                expect(parent.counter).toBe(2);
+                done();
+            }, 50);
         });
 
     });
