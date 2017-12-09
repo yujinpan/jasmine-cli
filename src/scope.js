@@ -29,6 +29,7 @@ Scope.prototype.$new = function (isolated, parent) {
         child = new ChildScope();
     }
     parent.$$children.push(child);
+    child.$parent = parent;
     child.$$watchers = [];
     child.$$children = [];
     return child;
@@ -252,6 +253,15 @@ Scope.prototype.$watchGroup = function (watchFns, listenerFn) {
             destroy();
         });
     };
+};
+
+Scope.prototype.$destroy = function() {
+    var siblings = this.$parent.$$children;
+    var indexOfThis = siblings.indexOf(this);
+    if(indexOfThis >= 0) {
+        siblings.splice(indexOfThis, 1);
+    }
+    this.$$watchers = null;
 };
 
 function initWatchVal() { }
