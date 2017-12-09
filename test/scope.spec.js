@@ -1094,6 +1094,26 @@ describe("Scope", function () {
             }, 50);
         });
 
+        it("可以采取其他一些作为父级的作用域", function() {
+            var prototypeParent = new Scope();
+            var hierarchyParent = new Scope();
+            var child = prototypeParent.$new(false, hierarchyParent);
+
+            prototypeParent.a = 42;
+            expect(child.a).toBe(42);
+
+            child.counter = 0;
+            child.$watch(
+                function(scope) { scope.counter++; }
+            );
+
+            prototypeParent.$digest();
+            expect(child.counter).toBe(0);
+
+            hierarchyParent.$digest();
+            expect(child.counter).toBe(2);
+        });
+
     });
 
 });
