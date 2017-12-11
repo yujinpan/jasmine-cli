@@ -1143,4 +1143,230 @@ describe("Scope", function () {
 
     });
 
+    describe("$watchCollection", function() {
+
+        // Detecing Non-Collection Changes:检测非集合变化
+        it("像非正常watch一样工作", function() {
+            var valueProvided;
+
+            scope.aValue = 42;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    valueProvided = newValue;
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            expect(valueProvided).toBe(scope.aValue);
+
+            scope.aValue = 43;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
+
+        it("像NaN的正常watch一样执行", function() {
+            scope.aValue = 0/0;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        // Detecting New Arrays:检测新数组
+        it("当值变成数组时通知", function() {
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr = [1,2,3];
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        // Detecting New Or Removed Items in Arrays:在数组中检测新的或删除的项目
+        it("注意添加到数组的项目", function() {
+            scope.arr = [1,2,3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr.push(4);
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
+        it("注意从数组中删除的项目", function() {
+            scope.arr = [1,2,3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr.shift();
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        // Detecting replaced or Reordered Items in Arrays:在数组中检测替换或重新排序的项目
+        it("注意到一个数组中被替换的项目", function() {
+            scope.arr = [1,2,3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr[1] = 42;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
+
+        it("通知一个数组中重新排序的项目", function() {
+            scope.arr = [2,1,3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arr.sort();
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+            
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it("在数组中的NaN上不会失败", function() {
+            scope.arr = [2, NaN, 3];
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arr; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        // Array-Like Ojbects 类似与数组的对象
+        it("注意在参数对象中替换的项目", function() {
+            (function(){
+                scope.arrayLike = arguments;
+            })(1,2,3);
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arrayLike; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.arrayLike[1] = 42;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+        it("注意在NodeList对象中替换的项目", function() {
+            document.documentElement.appendChild(document.createElement('div'));
+            scope.arrayLike = document.getElementsByTagName('div');
+
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.arrayLike; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            document.documentElement.appendChild(document.createElement('div'));
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+    });
+
 });

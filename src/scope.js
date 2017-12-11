@@ -106,7 +106,12 @@ Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
 };
 
 /**
- * 新旧值的比较 NaN!==NaN ==与===处理
+ * @description
+ * 新旧值的比较,NaN!==NaN
+ * 
+ * @param {boolean} true:值相等 false:全等
+ * 
+ * @returns {boolean} true:相等 false:不相等
  */
 Scope.prototype.$areEqual = function (newValue, oldValue, valueEq) {
     if (valueEq) {
@@ -368,6 +373,53 @@ Scope.prototype.$destroy = function() {
         siblings.splice(indexOfThis, 1);
     }
     this.$$watchers = null;
+};
+
+/**
+ * 第三种监视策略，面向数组和对象，参数与$watch相同
+ */
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+    var self = this;
+    var newValue, oldValue;
+    var changeCount = 0;
+    
+    var internalWatchFn = function(scope) {
+        newValue = watchFn(scope);
+        if(_.isObject(newValue)){
+            if(_.isArrayLike(newValue)){
+                if(!_.isArray(oldValue)){
+                    changeCount++;
+                    oldValue = [];
+                }
+                if(newValue.length !== oldValue.length) {
+                    changeCount++;
+                    oldValue.length = newValue.length;
+                }
+                _.forEach(newValue, function(newItem, i){
+                    // if(!self.$areEqual(newItem, oldValue[i])) {
+                    var bothNaN = _.isNaN(newItem) && _.isNaN(oldValue[i]);
+                    if(!bothNaN && newItem !== oldValue[i]) {
+                        changeCount++;
+                        oldValue[i] = newItem;
+                    }
+                });
+            } else {
+                throw 'function error';
+            }
+        }else{
+            if(!self.$areEqual(newValue, oldValue, false)) {
+                changeCount++;
+            }
+            oldValue = newValue;
+        }
+        return changeCount;
+    };
+
+    var internalListenerFn = function() {
+        listenerFn(newValue, oldValue, self);
+    };
+
+    return this.$watch(internalWatchFn, internalListenerFn);
 };
 
 /**
