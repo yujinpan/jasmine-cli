@@ -376,14 +376,20 @@ Scope.prototype.$destroy = function () {
 };
 
 /**
- * 第三种监视策略，面向数组和对象，参数与$watch相同
+ * 第三种监视策略，面向数组和对象，参数与$watch相同，采取子集浅复制
+ * 1.处理非集合值
+ * 
+ * 2.处理数组，类数组（NodeList,arguments）
+ * 
+ * 3.处理对象，类数组对象（对象中有length属性）
+ *  a.需要避免删除属性：在对象的属性被删除时会存在两次遍历；
  */
 Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
     var self = this;
     var newValue, oldValue;
     var changeCount = 0;
     var oldLength;
-    // veryOldValue:当listenerFn有oldValue参数时，会开启旧值克隆，否则返回索引
+    // veryOldValue:当listenerFn有oldValue参数时，会开启旧值克隆
     var veryOldValue;
     var trackVeryOldValue = (listenerFn.length > 1);
     var firstRun = true;
