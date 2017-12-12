@@ -1,6 +1,6 @@
  - Build Your Own Angularjs
 
- #### $watch & $digest
+### $watch & $digest
 
  - Angular的脏检查的两面过程：$watch和$digest。
  - 脏检查回路(当最后的watch干净时提前结束digest)，TTL机制将其短路($digest超过10次，抛出错误)。
@@ -11,7 +11,7 @@
  - 销毁watch，时期不会再执行。
  - 使用$watchGroup函数观察单个效果的几件事。
 
- #### Scope Tree
+### Scope Tree
 
  - 如何创建子作用域。（child = Object.create(this)）
  - 范围继承与JavaScript原生原型链继承之间的关系。
@@ -21,7 +21,7 @@
  - 隔离的作用域及他们与正常作用域的区别。（隔离的为 new Scope(),但是共享异步队列$evalAsync,$applyAsync,$$postDigest）
  - 如何销毁子集作用域。（将parent.$$children中当前scope删除，将当前scope的$$children删除，对象没有引用，内存回收）
 
- #### $watchCollection
+### $watchCollection
 
  - 区分数组，对象与其他值，处理非集合。（交给$watch处理）
  - 处理数组，类数组。（1.判断旧值是否是类数组，区分有length属性的类数组对象，赋值空数组；2.判断length是否相等，使length相等；3.遍历数组每一项是否相等，使之相等；）
