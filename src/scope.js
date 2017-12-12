@@ -366,10 +366,10 @@ Scope.prototype.$watchGroup = function (watchFns, listenerFn) {
  * 在页面中该作用不存在了,删除它在scope树中的对象,取消监听
  * 这里在$new的时候添加了child.$parent = parent的对父级的索引
  */
-Scope.prototype.$destroy = function() {
+Scope.prototype.$destroy = function () {
     var siblings = this.$parent.$$children;
     var indexOfThis = siblings.indexOf(this);
-    if(indexOfThis >= 0) {
+    if (indexOfThis >= 0) {
         siblings.splice(indexOfThis, 1);
     }
     this.$$watchers = null;
@@ -378,36 +378,72 @@ Scope.prototype.$destroy = function() {
 /**
  * 第三种监视策略，面向数组和对象，参数与$watch相同
  */
-Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
     var self = this;
     var newValue, oldValue;
     var changeCount = 0;
-    
-    var internalWatchFn = function(scope) {
+    var oldLength;
+    // veryOldValue:当listenerFn有oldValue参数时，会开启旧值克隆，否则返回索引
+    var veryOldValue;
+    var trackVeryOldValue = (listenerFn.length > 1);
+    var firstRun = true;
+
+    var internalWatchFn = function (scope) {
+        var newLength;
         newValue = watchFn(scope);
-        if(_.isObject(newValue)){
-            if(_.isArrayLike(newValue)){
-                if(!_.isArray(oldValue)){
+        if (_.isObject(newValue)) {
+            if (_.isArrayLike(newValue)) {
+                if (!_.isArray(oldValue)) {
                     changeCount++;
                     oldValue = [];
                 }
-                if(newValue.length !== oldValue.length) {
+                if (newValue.length !== oldValue.length) {
                     changeCount++;
                     oldValue.length = newValue.length;
                 }
-                _.forEach(newValue, function(newItem, i){
+                _.forEach(newValue, function (newItem, i) {
                     // if(!self.$areEqual(newItem, oldValue[i])) {
                     var bothNaN = _.isNaN(newItem) && _.isNaN(oldValue[i]);
-                    if(!bothNaN && newItem !== oldValue[i]) {
+                    if (!bothNaN && newItem !== oldValue[i]) {
                         changeCount++;
                         oldValue[i] = newItem;
                     }
                 });
             } else {
-                throw 'function error';
+                if (!_.isObject(oldValue) || _.isArrayLike(oldValue)) {
+                    changeCount++;
+                    oldValue = {};
+                    oldLength = 0;
+                }
+                newLength = 0;
+                _.forOwn(newValue, function (newVal, key) {
+                    newLength++;
+                    if(oldValue.hasOwnProperty(key)){
+                        // if(!self.$areEqual(oldValue[key], newVal)) {
+                        var bothNaN = _.isNaN(oldValue[key]) && _.isNaN(newVal);
+                        if (!bothNaN && oldValue[key] !== newVal) {
+                            changeCount++;
+                            oldValue[key] = newVal;
+                        }
+                    }else{
+                        changeCount++;
+                        oldLength++;
+                        oldValue[key] = newVal;
+                    }
+                });
+                // 第二个循环 如果删除了属性会有第二次循环
+                if(oldLength > newLength){
+                    changeCount++;
+                    _.forOwn(oldValue, function(oldVal, key) {
+                        if(!newValue.hasOwnProperty(key)) {
+                            oldLength--;
+                            delete oldValue[key];
+                        }
+                    });
+                }
             }
-        }else{
-            if(!self.$areEqual(newValue, oldValue, false)) {
+        } else {
+            if (!self.$areEqual(newValue, oldValue, false)) {
                 changeCount++;
             }
             oldValue = newValue;
@@ -415,8 +451,16 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
         return changeCount;
     };
 
-    var internalListenerFn = function() {
-        listenerFn(newValue, oldValue, self);
+    var internalListenerFn = function () {
+        if(firstRun){
+            listenerFn(newValue, oldValue, self);
+            firstRun = false;
+        }else{
+            listenerFn(newValue, veryOldValue, self);
+        }
+        if(trackVeryOldValue){
+            veryOldValue = _.clone(newValue);
+        }
     };
 
     return this.$watch(internalWatchFn, internalListenerFn);

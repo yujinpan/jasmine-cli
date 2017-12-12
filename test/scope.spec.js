@@ -1319,7 +1319,7 @@ describe("Scope", function () {
             expect(scope.counter).toBe(1);
         });
 
-        // Array-Like Ojbects 类似与数组的对象
+        // Array-Like Ojbects:类似与数组的对象
         it("注意在参数对象中替换的项目", function() {
             (function(){
                 scope.arrayLike = arguments;
@@ -1365,6 +1365,130 @@ describe("Scope", function () {
 
             scope.$digest();
             expect(scope.counter).toBe(2);
+        });
+
+        // Detecting New Objects:检测新的对象
+        it("通知值何时成为对象", function() {
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj = {a:1};
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        // Detecting New Or Replaced Attributes in Objects:在对象中检测新的或替换的属性
+        it("通知何时将属性添加到对象", function() {
+            scope.counter = 0;
+            scope.obj = {a:1};
+
+            scope.$watchCollection(
+                function(scope) {return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.obj.b = 2;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+        });
+        it("不会再对象中的NaN属性上失败", function() {
+            scope.counter = 0;
+            scope.obj = {a:NaN};
+
+            scope.$watchCollection(
+                function(scope) { return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
+        // Detecting Removed Attributes in Objects:检测对象中已删除的属性
+        it("注意何时从对象中删除属性", function() {
+            scope.counter = 0;
+            scope.obj = {a:1};
+
+            scope.$watchCollection(
+                function(scope) { return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            delete scope.obj.a;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        // Preventing Unnecessary Object Iteration:防止不必要的对象迭代
+
+        // Dealing with Objects that Have A length:处理有长度的对象
+        it("不考虑有长度属性的任何对象数组", function() {
+            scope.obj = {length:42,otherKey:'abc'};
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function(scope) { return scope.obj; },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+
+            scope.obj.newKey = 'def';
+            scope.$digest();
+
+            expect(scope.counter).toBe(2);
+        });
+
+        // Handing The Old Collection Value To Listeners:把旧的监听值交给监听者
+        it("为监听者提供了旧的非集合值", function() {
+            scope.aValue = 42;
+            var oldValueGiven;
+
+            scope.$watchCollection(
+                function(scope) { return scope.aValue; },
+                function(newValue, oldValue, scope) {
+                    oldValueGiven = oldValue;
+                }
+            );
+
+            scope.$digest();
+            scope.aValue = 43;
+            scope.$digest();
+
+            expect(oldValueGiven).toBe(42);
         });
 
     });
