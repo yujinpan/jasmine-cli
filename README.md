@@ -26,3 +26,13 @@
  - 区分数组，对象与其他值，处理非集合。（交给$watch处理）
  - 处理数组，类数组。（1.判断旧值是否是类数组，区分有length属性的类数组对象，赋值空数组；2.判断length是否相等，使length相等；3.遍历数组每一项是否相等，使之相等；）
  - 处理对象，类数组对象。（1.声明newLength,oldLength记录新值与旧值的属性数量；2.判断是否是对象或类数组对象，赋值空对象；2.遍历对象，没有的加上新属性，有的更新新属性；3.判断新旧对象数量oldValue是否有废弃的旧值，有则遍历去掉旧值；）
+
+ ### Scope Events
+
+ - Angular的事件系统如何建立再经典的pub/sub模式上（作用域树上的三个事件，注册事件，向上发布事件，向下广播事件）
+ - 如何在作用域上注册事件监听器（$on:function(eventName, listenerFn)）
+ - 事件如何在作用域中触发（向上通过$emit:function(eventName)，利用$parent循环向上发布；向下通过$broadcast:function(eventName)，利用$$childrens循环向下广播；）
+ - $emit和$boradcast之间的区别是什么（1.$emit沿着$parent向上循环，消耗性能小，$broadcast需要对所有的子集进行遍历，性能消耗巨大；2.$emit有stopPropagation()事件进行阻止向上发布；3.$emit和$broadcast需要的参数与返回的结果类似；）
+ - 作用域事件对象的内容是什么（targetScope,currentScope,eventName）
+ - 如何在DOM事件模型之后建立一些作用域属性（闭包返回scope）
+ - 何时以及如何停止作用域事件（stopPropagation及preventDefault事件）
