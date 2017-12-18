@@ -1493,4 +1493,374 @@ describe("Scope", function () {
 
     });
 
+    // Events
+    describe("Events", function() {
+        var parent;
+        var scope;
+        var child;
+        var isolatedChild;
+
+        beforeEach(function() {
+            parent = new Scope();
+            scope = parent.$new();
+            child = scope.$new();
+            isolatedChild = scope.$new(true);
+        });
+        // allows registering listeners
+        it("允许注册监听器", function() {
+            var listener1 = function() {};
+            var listener2 = function() {};
+            var listener3 = function() {};
+
+            scope.$on('someEvent', listener1);
+            scope.$on('someEvent', listener2);
+            scope.$on('someOtherEvent', listener3);
+
+            expect(scope.$$listeners).toEqual({
+                someEvent: [listener1, listener2],
+                someOtherEvent: [listener3]
+            });
+        });
+        // registers differnet listeners for every scope
+        it("给所有scope注册不同的监听者",function() {
+            var listener1 = function() {};
+            var listener2 = function() {};
+            var listener3 = function() {};
+
+            scope.$on('someEvent', listener1);
+            child.$on('someEvent', listener2);
+            isolatedChild.$on('someEvent', listener3);
+
+            expect(scope.$$listeners).toEqual({someEvent: [listener1]});
+            expect(child.$$listeners).toEqual({someEvent: [listener2]});
+            expect(isolatedChild.$$listeners).toEqual({someEvent: [listener3]});
+        });
+        // calls the listeners of the matching event on $emit
+        it("调用$emit的匹配事件的监听器", function() {
+            var listener1 = jasmine.createSpy();
+            var listener2 = jasmine.createSpy();
+            
+            scope.$on('someEvent', listener1);
+            scope.$on('someOtherEvent', listener2);
+
+            scope.$emit('someEvent');
+
+            expect(listener1).toHaveBeenCalled();
+            expect(listener2).not.toHaveBeenCalled();
+        });
+        // calls the listeners of the matching event on $broadcast
+        it("调用$broadcase上的匹配事件的监听器", function() {
+            var listener1 = jasmine.createSpy();
+            var listener2 = jasmine.createSpy();
+            
+            scope.$on('someEvent', listener1);
+            scope.$on('someOtherEvent', listener2);
+
+            scope.$broadcast('someEvent');
+
+            expect(listener1).toHaveBeenCalled();
+            expect(listener2).not.toHaveBeenCalled();
+        });
+        
+        // Dealing with Duplication 处理重复
+        _.forEach(['$emit', '$broadcast'], function(method){
+            it("调用注册匹配事件的监听器 "+method, function() {
+                var listener1 = jasmine.createSpy();
+                var listener2 = jasmine.createSpy();
+                scope.$on('someEvent', listener1);
+                scope.$on('someOtherEvent', listener2);
+
+                scope[method]('someEvent');
+
+                expect(listener1).toHaveBeenCalled();
+                expect(listener2).not.toHaveBeenCalled();
+            });
+        });
+
+        // Event Objects
+        _.forEach(['$emit', '$broadcast'], function(method){
+            it("将名称的事件对象传递给监听器 "+method, function() {
+                var listener = jasmine.createSpy();
+                scope.$on('someEvent', listener);
+
+                scope[method]('someEvent');
+
+                expect(listener).toHaveBeenCalled();
+                expect(listener.calls.mostRecent().args[0].name).toEqual('someEvent');
+            });
+            it("将相同的事件对象传递给每个监听器 "+method, function() {
+                var listener1 = jasmine.createSpy();
+                var listener2 = jasmine.createSpy();
+                scope.$on('someEvent', listener1);
+                scope.$on('someEvent', listener2);
+
+                scope[method]('someEvent');
+
+                var event1 = listener1.calls.mostRecent().args[0];
+                var event2 = listener2.calls.mostRecent().args[0];
+
+                expect(event1).toBe(event2);
+            });
+            // Additional Listener Arguments: 额外的监听器参数
+            it("将附加参数传递给监听器"+method, function() {
+                var listener = jasmine.createSpy();
+                scope.$on('someEvent', listener);
+
+                scope[method]('someEvent', 'and', ['additional', 'arguments'], '...');
+
+                expect(listener.calls.mostRecent().args[1]).toEqual('and');
+                expect(listener.calls.mostRecent().args[2]).toEqual(['additional', 'arguments']);
+                expect(listener.calls.mostRecent().args[3]).toEqual('...');
+            });
+            // Returning The Event Object 返回事件对象
+            it("返回事件对象"+method, function() {
+                var returnedEvent = scope[method]('someEvent');
+
+                expect(returnedEvent).toBeDefined();
+                expect(returnedEvent.name).toEqual('someEvent');
+            });
+            // Deregistering Event Listeners 注销事件监听器
+            it("能被销毁"+method, function() {
+                var listener = jasmine.createSpy();
+                var deregister = scope.$on('someEvent', listener);
+
+                deregister();
+                scope[method]('someEvent');
+
+                expect(listener).not.toHaveBeenCalled();
+            });
+            it("在被移除时不会跳过下一个监听器"+method, function() {
+                var deregister;
+                var listener = function() {
+                    deregister();
+                };
+                var nextListener = jasmine.createSpy();
+
+                deregister = scope.$on('someEvent', listener);
+                scope.$on('someEvent', nextListener);
+
+                scope[method]('someEvent');
+                expect(nextListener).toHaveBeenCalled();
+            });
+        });
+        // Emitting Up The Scope Hierarchy 发布范围层次结构
+        it("在$emit上传播范围层次结构", function() {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            expect(scopeListener).toHaveBeenCalled();
+            expect(parentListener).toHaveBeenCalled();
+        });
+        it("在$emit上传播相同的事件", function() {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            var scopeEvent = scopeListener.calls.mostRecent().args[0];
+            var parentEvent = parentListener.calls.mostRecent().args[0];
+            expect(scopeEvent).toBe(parentEvent);
+        });
+        // Broadcasting Down The Scope Hierarchy
+        it("在$broadcast上传播scope层次结构", function() {
+            var scopeListener = jasmine.createSpy();
+            var childListener = jasmine.createSpy();
+            var isolatedChildListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            child.$on('someEvent', childListener);
+
+            isolatedChild.$on('someEvent', isolatedChildListener);
+
+            scope.$broadcast('someEvent');
+
+            expect(scopeListener).toHaveBeenCalled();
+            expect(childListener).toHaveBeenCalled();
+            expect(isolatedChildListener).toHaveBeenCalled();
+        });
+        it("在$broadcast上传播相同的事件", function() {
+            var scopeListener = jasmine.createSpy();
+            var childListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            child.$on('someEvent', childListener);
+
+            scope.$broadcast('someEvent');
+
+            var scopeEvent = scopeListener.calls.mostRecent().args[0];
+            var childEvent = childListener.calls.mostRecent().args[0];
+            expect(scopeEvent).toBe(childEvent);
+        });
+        // Including The Current And Target Scopes In The Event Object 在事件对象中包含当前和目标范围
+        it("在$emit上附加targetScope", function() {
+            var scopeListener = jasmine.createSpy();
+            var parentListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            parent.$on('someEvent', parentListener);
+
+            scope.$emit('someEvent');
+
+            expect(scopeListener.calls.mostRecent().args[0].targetScope).toBe(scope);
+            expect(parentListener.calls.mostRecent().args[0].targetScope).toBe(scope);
+        });
+        it("在$broadcast上附加targetScope", function() {
+            var scopeListener = jasmine.createSpy();
+            var childListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            child.$on('someEvent', childListener);
+
+            scope.$broadcast('someEvent');
+
+            expect(scopeListener.calls.mostRecent().args[0].targetScope).toBe(scope);
+            expect(childListener.calls.mostRecent().args[0].targetScope).toBe(scope);
+        });
+        it("在$emit上附加currentScope", function() {
+            var currentScopeOnScope, currentScopeOnParent;
+            var scopeListener = function(event) {
+                currentScopeOnScope = event.currentScope;
+            };
+            var parentListener = function(event) {
+                currentScopeOnParent = event.currentScope;
+            };
+
+            scope.$on('someEvent', scopeListener);
+            parent.$on('someEvent', parentListener);
+
+            scope.$emit('someEvent');
+
+            expect(currentScopeOnScope).toBe(scope);
+            expect(currentScopeOnParent).toBe(parent);
+        });
+        it("在$broad上附加currentScope", function() {
+            var currentScopeOnScope, currentScopeOnChild;
+            var scopeListener = function(event) {
+                currentScopeOnScope = event.currentScope;
+            };
+            var childListener = function(event) {
+                currentScopeOnChild = event.currentScope;
+            };
+
+            scope.$on('someEvent', scopeListener);
+            child.$on('someEvent', childListener);
+
+            scope.$broadcast('someEvent');
+
+            expect(currentScopeOnScope).toBe(scope);
+            expect(currentScopeOnChild).toBe(child);
+        });
+        it("在$emit传播之后将currentScope设置为null", function() {
+            var event;
+            var scopeListener = function(evt) {
+                event = evt;
+            };
+            scope.$on('someEvent', scopeListener);
+            scope.$emit('someEvent');
+
+            expect(event.currentScope).toBe(null);
+        });
+        it("在$broad传播之后将currentScope设置为null", function() {
+            var event;
+            var scopeListener = function(evt) {
+                event = evt;
+            };
+            scope.$on('someEvent', scopeListener);
+            scope.$broadcast('someEvent');
+
+            expect(event.currentScope).toBe(null);
+        });
+        // Stopping Event Propagation
+        it("停止时不能传播给父母", function() {
+            var scopeListener = function(event) {
+                event.stopPropagation();
+            };
+            var parentListener = jasmine.createSpy();
+
+            scope.$on('someEvent', scopeListener);
+            parent.$on('someEvent', parentListener);
+
+            scope.$emit('someEvent');
+
+            expect(parentListener).not.toHaveBeenCalled();
+        });
+        it("被当前范围的监听器收到后停止", function() {
+            var listener1 = function(event) {
+                event.stopPropagation();
+            };
+            var listener2 = jasmine.createSpy();
+
+            scope.$on('someEvent', listener1);
+            scope.$on('someEvent', listener2);
+
+            scope.$emit('someEvent');
+
+            expect(listener2).toHaveBeenCalled();
+        });
+        // Preventing Default Event Behavior 防止默认的事件行为
+        _.forEach(['$emit', '$broadcast'], function(method) {
+            it("当preventDefault被调用时，设置defaultPrevented"+method, function() {
+                var listener = function(event) {
+                    event.preventDefault();
+                };
+                scope.$on('someEvent', listener);
+
+                var event = scope[method]('someEvent');
+
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        // Broadcasting Scope Removal
+        it("销毁时$destroy", function() {
+            var listener = jasmine.createSpy();
+            scope.$on('$destroy', listener);
+
+            scope.$destroy();
+            expect(listener).toHaveBeenCalled();
+        });
+        // Broadcasting Scope Removal
+        it("对被销毁的子集进行销毁", function() {
+            var listener = jasmine.createSpy();
+            child.$on('$destroy', listener);
+
+            scope.$destroy();
+            expect(listener).toHaveBeenCalled();
+        });
+        // Disabling Listeners On Destroyed Scopes 在销毁的范围上禁止监听器
+        it("不再再销毁后调用监听器", function() {
+            var listener = jasmine.createSpy();
+            scope.$on('myEvent', listener);
+
+            scope.$destroy();
+
+            scope.$emit('myEvent');
+            expect(listener).not.toHaveBeenCalled();
+        });
+        // Handling Exceptions
+        _.forEach(['$emit', '$broadcast'],function(method){
+            it("不停止异常"+method, function(){
+                var listener1 = function(event) {
+                    throw 'listener1 throwing an exception';
+                };
+                var listener2 = jasmine.createSpy();
+
+                scope.$on('someEvent', listener1);
+                scope.$on('someEvent', listener2);
+
+                scope[method]('someEvent');
+
+                expect(listener2).toHaveBeenCalled();
+            });
+        });
+
+    });
+
 });

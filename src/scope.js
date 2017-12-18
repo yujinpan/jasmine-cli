@@ -24,6 +24,7 @@ function Scope() {
     this.$$postDigestQueue = [];
     this.$root = this;
     this.$$children = [];
+    this.$$listeners = {};
     this.$$phase = null;
 }
 
@@ -53,6 +54,7 @@ Scope.prototype.$new = function (isolated, parent) {
     child.$parent = parent;
     child.$$watchers = [];
     child.$$children = [];
+    child.$$listeners = {};
     return child;
 };
 
@@ -373,6 +375,8 @@ Scope.prototype.$destroy = function () {
         siblings.splice(indexOfThis, 1);
     }
     this.$$watchers = null;
+    this.$broadcast('$destroy');
+    this.$$listeners = {};
 };
 
 /**
@@ -470,6 +474,95 @@ Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
     };
 
     return this.$watch(internalWatchFn, internalListenerFn);
+};
+
+/**
+ * 事件注册器
+ */
+Scope.prototype.$on = function(eventName, listenerFn) {
+    var self = this;
+    var listeners = this.$$listeners[eventName];
+    if(!listeners) {
+        this.$$listeners[eventName] = listeners = [];
+    }
+    listeners.push(listenerFn);
+    return function(){
+        var index = listeners.indexOf(listenerFn);
+        if(index >= 0) {
+            listeners[index] = null;
+        }
+    };
+};
+
+/**
+ * 事件触发 - $emit 发布
+ */
+Scope.prototype.$emit = function(eventName) {
+    var propagationStopped = false;
+    var event = {
+        name: eventName,
+        targetScope: this,
+        stopPropagation: function() {
+            propagationStopped = true;
+        },
+        preventDefault: function() {
+            this.defaultPrevented = true;
+        }
+    };
+    var listenerArgs = [event].concat(_.rest(arguments));
+    var scope = this;
+    do {
+        event.currentScope = scope;        
+        scope.$$fireEventOnScope(eventName, listenerArgs);
+        scope = scope.$parent;
+    }while(scope && !propagationStopped);
+    event.currentScope = null;
+    return event;
+};
+// Scope.prototype.$emit = function() {
+//     this.$$fireEventOnScope.apply(this, arguments);
+// };
+
+/**
+ * 事件触发 - $broadcast 广播
+ */
+Scope.prototype.$broadcast = function(eventName) {
+    var event = {
+        name: eventName,
+        targetScope: this,
+        preventDefault: function() {
+            this.defaultPrevented = true;
+        }
+    };
+    var listenerArgs = [event].concat(_.rest(arguments));
+    this.$$everyScope(function(scope){
+        event.currentScope = scope;        
+        scope.$$fireEventOnScope(eventName, listenerArgs);
+        return true;
+    });
+    event.currentScope = null;
+    return event;
+};
+
+/**
+ * 事件重复部分
+ */
+    
+Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
+    var listeners = this.$$listeners[eventName] || [];
+    var i = 0;
+    while(i < listeners.length) {
+        if(listeners[i] === null){
+            listeners.splice(i, 1);
+        }else{
+            try{
+                listeners[i].apply(null, listenerArgs);
+            }catch(e){
+                console.error(e);
+            }
+            i++;
+        }
+    }
 };
 
 /**
