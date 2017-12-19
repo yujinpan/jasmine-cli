@@ -2,7 +2,7 @@
 /* global Scope: false */
 'use strict';
 
-describe("Scope", function () {
+xdescribe("Scope", function () {
 
     var scope;
 
