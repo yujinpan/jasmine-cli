@@ -67,11 +67,26 @@ Lexer.prototype.isNumber = function (ch) {
 Lexer.prototype.readNumber = function () {
     var number = '';
     while (this.index < this.text.length) {
-        var ch = this.text.charAt(this.index);
+        var ch = this.text.charAt(this.index).toLowerCase();
         if (ch === '.' || this.isNumber(ch)) {
             number += ch;
         } else {
-            break;
+            var nextch = this.peek();
+            var prevch = number.charAt(number.length - 1);
+            // 如果当前字符为e，下一个字符为有效的指数运算符
+            if (ch === 'e' && this.isExpOperator(this.peek())) {
+                number += ch;
+            // 如果当前字符为+或-，前一个字符为e，下一个字符为数字
+            } else if (this.isExpOperator(ch) && prevch === 'e' &&
+                nextch && this.isNumber(nextch)) {
+                number += ch;
+            // 如果当前字符为+或-，前一个字符为e，没有下一个数字
+            } else if (this.isExpOperator(ch) && prevch === 'e' &&
+                (!nextch || !this.isNumber(nextch))) {
+                throw "Invalid exponent";
+            } else {
+                break;
+            }
         }
         this.index++;
     }
@@ -80,11 +95,14 @@ Lexer.prototype.readNumber = function () {
         value: Number(number)
     });
 };
-Lexer.prototype.peek = function() {
+Lexer.prototype.peek = function () {
     return this.index < this.text.length - 1 ?
-        this.text.charAt(this.index+1) :
+        this.text.charAt(this.index + 1) :
         false;
 };
+Lexer.prototype.isExpOperator = function (ch) {
+    return ch === '+' || ch === '-' || this.isNumber(ch);
+}
 
 // AST Abstract Syntax Tree 抽象语法树
 function AST(lexer) {
@@ -118,13 +136,13 @@ ASTCompiler.prototype.compile = function (text) {
     /* jshint +W054 */
     // AST compilation will be done here
 };
-ASTCompiler.prototype.recurse = function(ast) {
-    switch(ast.type){
-    case AST.Program:
-        this.state.body.push('return ', this.recurse(ast.body), ';');
-        break;
-    case AST.Literal:  
-        return ast.value;
+ASTCompiler.prototype.recurse = function (ast) {
+    switch (ast.type) {
+        case AST.Program:
+            this.state.body.push('return ', this.recurse(ast.body), ';');
+            break;
+        case AST.Literal:
+            return ast.value;
     }
 };
 
