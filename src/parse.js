@@ -50,7 +50,8 @@ Lexer.prototype.lex = function (text) {
 
     while (this.index < this.text.length) {
         this.ch = this.text.charAt(this.index);
-        if (this.isNumber(this.ch)) {
+        if (this.isNumber(this.ch) ||
+            (this.ch === '.' && this.isNumber(this.peek()))) {
             this.readNumber();
         } else {
             throw 'Unexpected next character: ' + this.ch;
@@ -67,7 +68,7 @@ Lexer.prototype.readNumber = function () {
     var number = '';
     while (this.index < this.text.length) {
         var ch = this.text.charAt(this.index);
-        if (this.isNumber(ch)) {
+        if (ch === '.' || this.isNumber(ch)) {
             number += ch;
         } else {
             break;
@@ -78,6 +79,11 @@ Lexer.prototype.readNumber = function () {
         text: number,
         value: Number(number)
     });
+};
+Lexer.prototype.peek = function() {
+    return this.index < this.text.length - 1 ?
+        this.text.charAt(this.index+1) :
+        false;
 };
 
 // AST Abstract Syntax Tree 抽象语法树
@@ -117,7 +123,7 @@ ASTCompiler.prototype.recurse = function(ast) {
     case AST.Program:
         this.state.body.push('return ', this.recurse(ast.body), ';');
         break;
-    case AST.Literal:
+    case AST.Literal:  
         return ast.value;
     }
 };
