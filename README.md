@@ -36,3 +36,13 @@
  - 作用域事件对象的内容是什么（targetScope,currentScope,eventName）
  - 如何在DOM事件模型之后建立一些作用域属性（闭包返回scope）
  - 何时以及如何停止作用域事件（stopPropagation及preventDefault事件）
+
+ ### Literal Expressions
+
+ - Angular表达式解析器的实现（表达式解析管道Lexer -> AST Builder -> AST Compiler，语法分析器生成tokens，构建抽象语法树，编译语法树）
+ - 解析整数
+ - 解析浮点数
+ - 解析科学记数法
+ - 解析字符串
+ - 解析true，false，null
+ - 解析空格
