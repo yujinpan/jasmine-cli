@@ -109,6 +109,15 @@ describe("parse 解析", function() {
     });
 
     // Parsing Arrays
-    
+    // will parse an empty array
+    it("将解析一个空的数组", function() {
+        var fn = parse('[]');
+        expect(fn()).toEqual([]);
+    });
+    // will parse a non-empty array
+    it("将解析一个非空数组", function() {
+        var fn = parse('[1, "two", [3], true');
+        expect(fn()).toEqual([1, 'two', [3], true]);
+    });
 
 });
