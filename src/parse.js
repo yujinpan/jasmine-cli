@@ -31,6 +31,9 @@
  * Lexer => AST Build => AST Compile
  */
 
+/**
+ * 入口函数
+ */
 function parse(expr) {
     var lexer = new Lexer();
     var parse = new Parser(lexer);
@@ -38,10 +41,40 @@ function parse(expr) {
     // return ...
 }
 
-// Lexer 解析器
-function Lexer() {
-
+/**
+ * 辅助类
+ * 
+ * @param {Lexer} lexer 
+ */
+function Parser(lexer) {
+    this.lexer = lexer;
+    this.ast = new AST(this.lexer);
+    this.astCompiler = new ASTCompiler(this.ast);
 }
+Parser.prototype.parse = function (text) {
+    return this.astCompiler.compile(text);
+};
+
+// Lexer 解析器
+function Lexer() {}
+/**
+ * @description
+ * 解析text，分发不同类型的字符，生成对应的tokens数组；
+ * 
+ * ---- 变量 ----
+ * this.index   为循环text的index下标；
+ * this.ch      为当前下标的字符；
+ * 
+ * ---- 类型 ----
+ * 1.number类型：包含小数点，科学记数法e字符，分发进入readNumber方法；
+ * 2.string类型：包含单引号与双引号，分发进入readString方法；
+ * 3.array与object类型：包含[]，{}和逗号与冒号符号，直接将该字符添加为tokens，在后面program处理；
+ * 4.变量类型：包括小写与大写字母，下划线与$符号开头的标识符，分发进入readIdent方法；
+ * 5.空白字符：将当前的index向前移动；
+ * 6.其他：抛出该错误字符；
+ * 
+ * @param {string} text 解析的字符
+ */
 Lexer.prototype.lex = function (text) {
     this.text = text;
     this.index = 0;
@@ -51,11 +84,11 @@ Lexer.prototype.lex = function (text) {
     while (this.index < this.text.length) {
         this.ch = this.text.charAt(this.index);
         if (this.isNumber(this.ch) ||
-            (this.ch === '.' && this.isNumber(this.peek()))) {
+            (this.is('.') && this.isNumber(this.peek()))) {
             this.readNumber();
-        } else if (this.ch === '\'' || this.ch === '"') {
+        } else if (this.is('\'"')) {
             this.readString(this.ch);
-        } else if (this.ch === '[' || this.ch === ']' || this.ch === ',') {
+        } else if (this.is('[],{}:')) {
             this.tokens.push({
                 text: this.ch
             });
@@ -74,9 +107,12 @@ Lexer.prototype.lex = function (text) {
     return this.tokens;
     // Tokenization will be done here
 };
-Lexer.prototype.isNumber = function (ch) {
-    return '0' <= ch && ch <= '9';
-};
+
+/* ---------- 生成tokens ---------- */
+
+/**
+ * 生成number类型的tokens
+ */
 Lexer.prototype.readNumber = function () {
     var number = '';
     while (this.index < this.text.length) {
@@ -108,21 +144,12 @@ Lexer.prototype.readNumber = function () {
         value: Number(number)
     });
 };
-Lexer.prototype.peek = function () {
-    return this.index < this.text.length - 1 ?
-        this.text.charAt(this.index + 1) :
-        false;
-};
-Lexer.prototype.isExpOperator = function (ch) {
-    return ch === '+' || ch === '-' || this.isNumber(ch);
-};
-// 换行符\n, 换行符\f, 回车符\r, 水平制表符\t, 垂直制表符\v
-// Unicode转义序列，以\u开头并包含四位十六进制。
-// 例如，\u00A0表示一个不间断的空格字符。
-var ESCAPE = {
-    'n': '\n', 'f': '\f', 'r': '\r', 't': '\t',
-    'v': '\v', '\'': '\'', '"': '"'
-};
+
+/**
+ * 生成string类型的tokens
+ * 
+ * @param {string} quote 单引号或双引号
+ */
 Lexer.prototype.readString = function (quote) {
     this.index++;
     var string = '';
@@ -162,12 +189,10 @@ Lexer.prototype.readString = function (quote) {
     }
     throw 'Unmatched quote';
 };
-// 通过查看是否有一个小写或大写字母，下划线或美元字符开头的序列来表示语法分析器的标识符
-Lexer.prototype.isIdent = function (ch) {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'z') ||
-        ch === '_' || ch === '$';
-};
-// 读取标识符
+
+/**
+ * 生成变量名的tokens
+ */
 Lexer.prototype.readIdent = function () {
     var text = '';
     while (this.index < this.text.length) {
@@ -183,63 +208,180 @@ Lexer.prototype.readIdent = function () {
     var token = { text: text };
     this.tokens.push(token);
 };
-// 空格，回车，水平制表符，垂直制表符，换行符，非空格符
+
+/* ---------- 判断类型 ---------- */
+
+/**
+ * 符号集合
+ * 换行符\n, 换行符\f, 回车符\r, 水平制表符\t, 垂直制表符\v
+ * 
+ * 1.Unicode转义序列，以\u开头并包含四位十六进制。
+ * 2.\u00A0表示一个不间断的空格字符。
+ */
+var ESCAPE = {
+    'n': '\n', 'f': '\f', 'r': '\r', 't': '\t',
+    'v': '\v', '\'': '\'', '"': '"'
+};
+
+/**
+ * 判断是否为：0-9的数字字符串
+ * 
+ * @param {string} ch 判断的字符
+ */
+Lexer.prototype.isNumber = function (ch) {
+    return '0' <= ch && ch <= '9';
+};
+
+/**
+ * 判断是否为： + - number
+ * 
+ * @param {string} ch 判断的字符
+ */
+Lexer.prototype.isExpOperator = function (ch) {
+    return ch === '+' || ch === '-' || this.isNumber(ch);
+};
+
+/**
+ * 判断是否为：变量名
+ * 
+ * 1.小写字母 2.大写字母 3.下划线 4.美元符
+ */
+Lexer.prototype.isIdent = function (ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
+        ch === '_' || ch === '$';
+};
+
+/**
+ * 判断是否为：空格，回车，水平制表符，垂直制表符，换行符，非空格符
+ */
 Lexer.prototype.isWhitespace = function (ch) {
     return ch === ' ' || ch === 'r' || ch === '\t' ||
         ch === '\n' || ch === '\v' || ch === '\u00A0';
 };
 
-// AST Abstract Syntax Tree 抽象语法树
+/**
+ * 判断是否为：该字符串中是否有匹配的字符
+ */
+// 检测当前字符是否与该字符串中的任何字符匹配
+Lexer.prototype.is = function (chs) {
+    return chs.indexOf(this.ch) >= 0;
+};
+
+/**
+ * 计算下一个字符，若当前为最后一个字符，返回false
+ */
+Lexer.prototype.peek = function () {
+    return this.index < this.text.length - 1 ?
+        this.text.charAt(this.index + 1) :
+        false;
+};
+
+
+/**
+ * AST Abstract Syntax Tree 抽象语法树
+ * 
+ * 抽象语法树类型：
+ * Program：需要编制，
+ * Literal：数字，
+ * ArrayExpression：数组，
+ * ObjectExpression：对象，
+ * Property：对象属性
+ */
 function AST(lexer) {
     this.lexer = lexer;
 }
-
 AST.Program = 'Program';
 AST.Literal = 'Literal';
 AST.ArrayExpression = 'ArrayExpression';
+AST.ObjectExpression = 'ObjectExpression';
+AST.Property = 'Property';
 
+/**
+ * AST构建入口
+ * 
+ * 1.生成tokens
+ * 2.解析tokens，生成语法树
+ * 
+ * @param {string} text 需要编译的字符
+ */
 AST.prototype.ast = function (text) {
     this.tokens = this.lexer.lex(text);
     return this.program();
     // AST building will be done here
 };
+
+/**
+ * 生成语法树
+ */
 AST.prototype.program = function () {
     return { type: AST.Program, body: this.primary() };
 };
+// 分发不同类型的语法树生成方法
 AST.prototype.primary = function () {
     if (this.expect('[')) {
         return this.arrayDeclaration();
+    } else if (this.expect('{')) {
+        return this.object();
     } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
         return this.constants[this.consume().text];
     } else {
         return this.constant();
     }
 };
+
+// 处理数字类型的语法树
 AST.prototype.constant = function () {
-    return { type: AST.Literal, value: this.consume.value };
+    return { type: AST.Literal, value: this.consume().value };
 };
+
+// 处理 null，true，false 基本类型的语法树
 AST.prototype.constants = {
     'null': { type: AST.Literal, value: null },
     'true': { type: AST.Literal, value: true },
     'false': { type: AST.Literal, value: false }
 };
-// 期望检查一个标记室我们所期望的
-AST.prototype.expect = function (e) {
-    var token = this.peek(e);
-    if (token) {
-        return this.tokens.shift();
-    }
-};
+
+/**
+ * 处理数组类型的语法树
+ */
 AST.prototype.arrayDeclaration = function () {
     var elements = [];
     if (!this.peek(']')) {
         do {
+            if (this.peek(']')) {
+                break;
+            }
             elements.push(this.primary());
         } while (this.expect(','));
     }
     this.consume(']');
     return { type: AST.ArrayExpression, elements: elements };
 };
+
+/**
+ * 处理对象类型的语法树
+ */
+AST.prototype.object = function () {
+    var properties = [];
+    if (!this.peek('}')) {
+        do {
+            var property = { type: AST.Property };
+            property.key = this.constant();
+            this.consume(':');
+            property.value = this.primary();
+            properties.push(property);
+        } while (this.expect(','));
+    }
+    this.consume('}');
+    return { type: AST.ObjectExpression, properties: properties };
+};
+
+/**
+ * 判断是否为：
+ * 下一个token的text值是否为e，
+ * 如果是则返回该token，并从原数组中删除该token
+ * 如果否则抛出错误
+ */
 AST.prototype.consume = function (e) {
     var token = this.expect(e);
     if (!token) {
@@ -247,6 +389,13 @@ AST.prototype.consume = function (e) {
     }
     return token;
 };
+
+/**
+ * 判断是否为：
+ * 下一个token的text值是否为e或是否有e值，
+ * 如果是则返回该token
+ * 如果否则返回undefined
+ */
 AST.prototype.peek = function (e) {
     if (this.tokens.length > 0) {
         var text = this.tokens[0].text;
@@ -256,10 +405,36 @@ AST.prototype.peek = function (e) {
     }
 };
 
-// ASTCompiler
+/**
+ * 判断是否为：
+ * 下一个token的text值是否为e，
+ * 如果是则返回该token，并从原数组中删除该token
+ * 如果否则返回undefined
+ */
+AST.prototype.expect = function (e) {
+    var token = this.peek(e);
+    if (token) {
+        return this.tokens.shift();
+    }
+};
+
+
+/**
+ * AST编译
+ * 
+ * @param {object} astBuilder 
+ */
 function ASTCompiler(astBuilder) {
     this.astBuilder = astBuilder;
 }
+
+/**
+ * AST编译入口
+ * 1.生成ast
+ * 2.解析ast，返回生成编译结果的执行函数
+ * 
+ * @param {string} text 需要编译的字符
+ */
 ASTCompiler.prototype.compile = function (text) {
     var ast = this.astBuilder.ast(text);
     this.state = { body: [] };
@@ -270,7 +445,9 @@ ASTCompiler.prototype.compile = function (text) {
     /* jshint +W054 */
     // AST compilation will be done here
 };
+// 解析ast的动作
 ASTCompiler.prototype.recurse = function (ast) {
+    var self = this;
     switch (ast.type) {
         case AST.Program:
             this.state.body.push('return ', this.recurse(ast.body), ';');
@@ -278,15 +455,26 @@ ASTCompiler.prototype.recurse = function (ast) {
         case AST.Literal:
             return this.escape(ast.value);
         case AST.ArrayExpression:
-            return '[]';
+            var elements = _.map(ast.elements, function (element) {
+                return self.recurse(element);
+            });
+            return '[' + elements.join(',') + ']';
+        case AST.ObjectExpression:
+            var properties = _.map(ast.properties, function (property) {
+                var key = self.escape(property.key.value);
+                var value = self.recurse(property.value);
+                return key + ':' + value;
+            });
+            return '{' + properties.join(',') + '}';
     }
 };
+
 // 匹配所有除字母数字之外的字符
 ASTCompiler.prototype.stringEscapeRegex = /[^a-zA-Z0-9]/g;
 ASTCompiler.prototype.stringEscapeFn = function (c) {
     return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
 };
-// 格式为字符串
+// 格式为可执行的字符串
 ASTCompiler.prototype.escape = function (value) {
     if (_.isString(value)) {
         return '\'' +
@@ -297,14 +485,4 @@ ASTCompiler.prototype.escape = function (value) {
     } else {
         return value;
     }
-};
-
-// Parser
-function Parser(lexer) {
-    this.lexer = lexer;
-    this.ast = new AST(this.lexer);
-    this.astCompiler = new ASTCompiler(this.ast);
-}
-Parser.prototype.parse = function (text) {
-    return this.astCompiler.compile(text);
 };

@@ -116,8 +116,24 @@ describe("parse 解析", function() {
     });
     // will parse a non-empty array
     it("将解析一个非空数组", function() {
-        var fn = parse('[1, "two", [3], true');
+        var fn = parse('[1, "two", [3], true]');
         expect(fn()).toEqual([1, 'two', [3], true]);
+    });
+    // will parse an array with trailing commas
+    it("将用尾随逗号分析数组", function() {
+        var fn = parse('[1, 2, 3, ]');
+        expect(fn()).toEqual([1,2,3]);
+    });
+
+    // Parsing Objects
+    it("将解析一个空对象", function() {
+        var fn = parse('{}');
+        expect(fn()).toEqual({});
+    });
+    // will parse a non-empty object
+    it("将解析一个非空的对象", function() {
+        var fn = parse('{"a key": 1, \'another-key\': 2}');
+        expect(fn()).toEqual({'a key':1,'another-key':2});
     });
 
 });
