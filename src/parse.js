@@ -56,7 +56,7 @@ Parser.prototype.parse = function (text) {
 };
 
 // Lexer 解析器
-function Lexer() {}
+function Lexer() { }
 /**
  * @description
  * 解析text，分发不同类型的字符，生成对应的tokens数组；
@@ -205,7 +205,7 @@ Lexer.prototype.readIdent = function () {
         }
         this.index++;
     }
-    var token = { text: text };
+    var token = { text: text, identifier: true };
     this.tokens.push(token);
 };
 
@@ -295,6 +295,7 @@ AST.Literal = 'Literal';
 AST.ArrayExpression = 'ArrayExpression';
 AST.ObjectExpression = 'ObjectExpression';
 AST.Property = 'Property';
+AST.Identifier = 'Identifier';
 
 /**
  * AST构建入口
@@ -324,6 +325,8 @@ AST.prototype.primary = function () {
         return this.object();
     } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
         return this.constants[this.consume().text];
+    } else if (this.peek().identifier) {
+        return this.identifier();
     } else {
         return this.constant();
     }
@@ -366,7 +369,11 @@ AST.prototype.object = function () {
     if (!this.peek('}')) {
         do {
             var property = { type: AST.Property };
-            property.key = this.constant();
+            if (this.peek().identifier) {
+                property.key = this.identifier();
+            } else {
+                property.key = this.constant();
+            }
             this.consume(':');
             property.value = this.primary();
             properties.push(property);
@@ -374,6 +381,13 @@ AST.prototype.object = function () {
     }
     this.consume('}');
     return { type: AST.ObjectExpression, properties: properties };
+};
+
+/**
+ * 处理标识符类型的语法树
+ */
+AST.prototype.identifier = function () {
+    return { type: AST.Identifier, name: this.consume().text };
 };
 
 /**
@@ -441,11 +455,11 @@ ASTCompiler.prototype.compile = function (text) {
     this.recurse(ast);
     // 这里取消jshint的报错（W054）
     /* jshint -W054 */
-    return new Function(this.state.body.join(''));
+    return new Function('s', this.state.body.join(''));
     /* jshint +W054 */
     // AST compilation will be done here
 };
-// 解析ast的动作
+// 解析ast的动作，分发不同类型的处理方法
 ASTCompiler.prototype.recurse = function (ast) {
     var self = this;
     switch (ast.type) {
@@ -461,11 +475,16 @@ ASTCompiler.prototype.recurse = function (ast) {
             return '[' + elements.join(',') + ']';
         case AST.ObjectExpression:
             var properties = _.map(ast.properties, function (property) {
-                var key = self.escape(property.key.value);
+                var key = property.key.type === AST.Identifier ?
+                    property.key.name : self.escape(property.key.value);
                 var value = self.recurse(property.value);
                 return key + ':' + value;
             });
             return '{' + properties.join(',') + '}';
+        case AST.Identifier:
+            this.state.body.push('var v0;');
+            this.if_('s', 'v0=' + this.nonComputedMember('s', ast.name) + ';');
+            return 'v0';
     }
 };
 
@@ -485,4 +504,14 @@ ASTCompiler.prototype.escape = function (value) {
     } else {
         return value;
     }
+};
+
+// 返回 left.right
+ASTCompiler.prototype.nonComputedMember = function (left, right) {
+    return '(' + left + ').' + right;
+};
+
+// 判断：test通过，则执行consequent
+ASTCompiler.prototype.if_ = function(test, consequent) {
+    this.state.body.push('if(', test, '){', consequent, '}');
 };
