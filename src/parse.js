@@ -451,11 +451,14 @@ function ASTCompiler(astBuilder) {
  */
 ASTCompiler.prototype.compile = function (text) {
     var ast = this.astBuilder.ast(text);
-    this.state = { body: [] };
+    this.state = { body: [], nextId: 0, vars: [] };
     this.recurse(ast);
     // 这里取消jshint的报错（W054）
     /* jshint -W054 */
-    return new Function('s', this.state.body.join(''));
+    return new Function('s',(
+        this.state.vars.length ? 
+        'var ' + this.state.vars.join('.') + ';' : ''
+    ) + this.state.body.join(''));
     /* jshint +W054 */
     // AST compilation will be done here
 };
@@ -482,9 +485,9 @@ ASTCompiler.prototype.recurse = function (ast) {
             });
             return '{' + properties.join(',') + '}';
         case AST.Identifier:
-            this.state.body.push('var v0;');
-            this.if_('s', 'v0=' + this.nonComputedMember('s', ast.name) + ';');
-            return 'v0';
+            var intoId = this.nextId();
+            this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+            return intoId;
     }
 };
 
@@ -512,6 +515,18 @@ ASTCompiler.prototype.nonComputedMember = function (left, right) {
 };
 
 // 判断：test通过，则执行consequent
-ASTCompiler.prototype.if_ = function(test, consequent) {
+ASTCompiler.prototype.if_ = function (test, consequent) {
     this.state.body.push('if(', test, '){', consequent, '}');
+};
+
+// 辅助函数：变量赋值
+ASTCompiler.prototype.assign = function (id, value) {
+    return id + '=' + value + ';';
+};
+
+// 辅助函数：递增生成比变量名
+ASTCompiler.prototype.nextId = function () {
+    var id = 'v' + (this.state.nextId++);
+    this.state.vars.push(id);
+    return id;
 };
