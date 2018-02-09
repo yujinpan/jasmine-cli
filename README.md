@@ -29,25 +29,26 @@ grunt testem
 
 > 测试代码与待测试代码在同一作用域
 
+ - 待测试代码`src/hello.js`
+
 ```
-// 待测试代码
-// src/hello.js
 function sayHello(to){
     return _.template("Hello, <%= name %>!")({name:to});
 }
+```
 
-
-// 测试用例
+ - 测试用例`test/hello.spec.js`
+```
 // 测试的项目，Hello为描述名
 describe("Hello", function() {
 
     // 测试项目里面的细节测试，sayHello为该测试项的描述
     it("sayhello", function() {
 
-        # 测试执行
-        # 我们期望sayHello("Richard")的结果为"Hello, Richard!"
+        // 测试执行
+        // 我们期望sayHello("Richard")的结果为"Hello, Richard!"
         expect(sayHello("Richard")).toBe("Hello, Richard!");
-        
+
     });
 });
 ```
