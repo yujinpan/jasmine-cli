@@ -149,18 +149,40 @@ describe("parse 解析", function () {
         expect(fn({})).toBeUndefined();
     });
     // returns undefined when looking up attribute from undefined
-    it("从undefined查找属性时返回undefined，不会报错", function() {
+    it("从undefined查找属性时返回undefined，不会报错", function () {
         var fn = parse('aKey');
         expect(fn()).toBeUndefined();
     });
-    
+
     // Parsing this
     // will parse this
-    it("将解析this", function() {
+    it("将解析this", function () {
         var fn = parse('this');
         var scope = {};
         expect(fn(scope)).toBe(scope);
         expect(fn()).toBeUndefined();
     });
+
+    // Non-ComputedAttribute Lookup
+    // looks up a 2-part identifier path from the scope
+    it("从范围中查找2部分标识符路径", function () {
+        var fn = parse('aKey.anotherKey');
+        expect(fn({ aKey: { anotherKey: 42 } })).toBe(42);
+        expect(fn({ aKey: {} })).toBeUndefined();
+        expect(fn({})).toBeUndefined();
+    });
+    // looks up a member from an object
+    it("从一个对象查找一个成员", function () {
+        var fn = parse('{aKey:42}.aKey');
+        expect(fn()).toBe(42);
+    });
+    // looks up a 4-part identifier path from the scope
+    it("从scope查找4部分的标识符路径", function() {
+        var fn = parse('aKey.secondKey.thirdKey.fourthKey');
+        expect(fn({aKey: {secondKey: {thirdKey: {fourthKey: 42}}}})).toBe(42);
+        expect(fn({aKey: {secondKey: {thirdKey: {}}}})).toBeUndefined();
+        expect(fn({aKey: {}})).toBeUndefined();
+        expect(fn()).toBeUndefined();
+    })
 
 });
