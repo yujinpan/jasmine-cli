@@ -2,9 +2,11 @@
 
 # Testem-cli
 
- - **用于搭建单元测试的基础脚手架**
- - 使用了`lodash.js`，方便处理数据，[官网API地址](https://lodash.com/)
- - 使用了`Jasmine`测试框架，[官网API地址](https://jasmine.github.io/index.html)
+ - 搭建基于`Grunt + Jasmine`框架的单元测试基础脚手架
+ - 使用了`Grunt`前端构建工具，[Grunt官网API地址](http://www.gruntjs.net/)
+ - 使用了`Jasmine`测试框架，[Jasmine官网API地址](https://jasmine.github.io/index.html)
+ - 使用了`lodash.js`，方便处理数据，[Lodash官网API地址](https://lodash.com/)
+ - *编辑器使用了`JShint`校验，所以`Grunt`中没有配置*
 
 # Directory
 
@@ -45,7 +47,3 @@ describe("Hello", function() {
     });
 });
 ```
-
-# Precautions
-
- - **编辑器使用了jshint检测,所以grunt中没有配置**
