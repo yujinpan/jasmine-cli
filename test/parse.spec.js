@@ -153,5 +153,14 @@ describe("parse 解析", function () {
         var fn = parse('aKey');
         expect(fn()).toBeUndefined();
     });
+    
+    // Parsing this
+    // will parse this
+    it("将解析this", function() {
+        var fn = parse('this');
+        var scope = {};
+        expect(fn(scope)).toBe(scope);
+        expect(fn()).toBeUndefined();
+    });
 
 });

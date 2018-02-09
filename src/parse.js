@@ -286,6 +286,7 @@ Lexer.prototype.peek = function () {
  * ArrayExpression：数组，
  * ObjectExpression：对象，
  * Property：对象属性
+ * Identifier: 标识符
  */
 function AST(lexer) {
     this.lexer = lexer;
@@ -296,6 +297,8 @@ AST.ArrayExpression = 'ArrayExpression';
 AST.ObjectExpression = 'ObjectExpression';
 AST.Property = 'Property';
 AST.Identifier = 'Identifier';
+AST.ThisExpression = 'ThisExpression';
+
 
 /**
  * AST构建入口
@@ -337,11 +340,12 @@ AST.prototype.constant = function () {
     return { type: AST.Literal, value: this.consume().value };
 };
 
-// 处理 null，true，false 基本类型的语法树
+// 处理 null，true，false，this 类型语法树
 AST.prototype.constants = {
     'null': { type: AST.Literal, value: null },
     'true': { type: AST.Literal, value: true },
-    'false': { type: AST.Literal, value: false }
+    'false': { type: AST.Literal, value: false },
+    'this': { type: AST.ThisExpression },
 };
 
 /**
@@ -455,9 +459,9 @@ ASTCompiler.prototype.compile = function (text) {
     this.recurse(ast);
     // 这里取消jshint的报错（W054）
     /* jshint -W054 */
-    return new Function('s',(
-        this.state.vars.length ? 
-        'var ' + this.state.vars.join('.') + ';' : ''
+    return new Function('s', (
+        this.state.vars.length ?
+            'var ' + this.state.vars.join('.') + ';' : ''
     ) + this.state.body.join(''));
     /* jshint +W054 */
     // AST compilation will be done here
@@ -488,6 +492,8 @@ ASTCompiler.prototype.recurse = function (ast) {
             var intoId = this.nextId();
             this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
             return intoId;
+        case AST.ThisExpression:
+            return 's';
     }
 };
 
