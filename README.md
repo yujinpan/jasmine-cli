@@ -1,6 +1,56 @@
- - Build Your Own Angularjs
+[TOC]
 
-### $watch & $digest
+# Testem-cli
+
+ - 搭建基于`Grunt + Jasmine`框架的单元测试基础脚手架
+ - 使用了`Grunt`前端构建工具，[Grunt官网API地址](http://www.gruntjs.net/)
+ - 使用了`Jasmine`测试框架，[Jasmine官网API地址](https://jasmine.github.io/index.html)
+ - 使用了`lodash.js`，方便处理数据，[Lodash官网API地址](https://lodash.com/)
+ - *编辑器使用了`JShint`校验，所以`Grunt`中没有配置*
+
+# Directory
+
+```
+src     // 待测试代码；
+test    // 单元测试，文件名与src的待测试代码对应；
+```
+
+# Get Started
+
+```
+<!-- 安装npm包 -->
+cnpm install
+
+<!-- 开始单元测试 -->
+grunt testem
+```
+
+# Simple Example
+
+> 测试代码与待测试代码在同一作用域
+
+```
+// 待测试代码
+// src/hello.js
+function sayHello(to){
+    return _.template("Hello, <%= name %>!")({name:to});
+}
+
+// 测试用例
+// 测试的项目，Hello为描述名
+describe("Hello", function() {
+    // 测试项目里面的细节测试，sayHello为该测试项的描述
+    it("sayhello", function() {
+        // 测试执行
+        // 我们期望sayHello("Richard")的结果为"Hello, Richard!"
+        expect(sayHello("Richard")).toBe("Hello, Richard!");
+    });
+});
+```
+
+# Object - Build Your Own Angularjs
+
+## $watch & $digest
 
  - Angular的脏检查的两面过程：$watch和$digest。
  - 脏检查回路(当最后的watch干净时提前结束digest)，TTL机制将其短路($digest超过10次，抛出错误)。
@@ -11,7 +61,7 @@
  - 销毁watch，时期不会再执行。
  - 使用$watchGroup函数观察单个效果的几件事。
 
-### Scope Tree
+## Scope Tree
 
  - 如何创建子作用域。（child = Object.create(this)）
  - 范围继承与JavaScript原生原型链继承之间的关系。
@@ -21,13 +71,13 @@
  - 隔离的作用域及他们与正常作用域的区别。（隔离的为 new Scope(),但是共享异步队列$evalAsync,$applyAsync,$$postDigest）
  - 如何销毁子集作用域。（将parent.$$children中当前scope删除，将当前scope的$$children删除，对象没有引用，内存回收）
 
-### $watchCollection
+## $watchCollection
 
  - 区分数组，对象与其他值，处理非集合。（交给$watch处理）
  - 处理数组，类数组。（1.判断旧值是否是类数组，区分有length属性的类数组对象，赋值空数组；2.判断length是否相等，使length相等；3.遍历数组每一项是否相等，使之相等；）
  - 处理对象，类数组对象。（1.声明newLength,oldLength记录新值与旧值的属性数量；2.判断是否是对象或类数组对象，赋值空对象；2.遍历对象，没有的加上新属性，有的更新新属性；3.判断新旧对象数量oldValue是否有废弃的旧值，有则遍历去掉旧值；）
 
-### Scope Events
+## Scope Events
 
  - Angular的事件系统如何建立再经典的pub/sub模式上（作用域树上的三个事件，注册事件，向上发布事件，向下广播事件）
  - 如何在作用域上注册事件监听器（$on:function(eventName, listenerFn)）
@@ -37,7 +87,7 @@
  - 如何在DOM事件模型之后建立一些作用域属性（闭包返回scope）
  - 何时以及如何停止作用域事件（stopPropagation及preventDefault事件）
 
- ### Literal Expressions
+ ## Literal Expressions
 
  - Angular表达式解析器的实现（表达式解析管道Lexer -> AST Builder -> AST Compiler，语法分析器生成tokens，构建抽象语法树，编译语法树）
  - 解析过程最终的结果是生成JavaScript函数（new Function(expr)）
