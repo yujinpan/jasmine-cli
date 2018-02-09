@@ -530,12 +530,12 @@ ASTCompiler.prototype.escape = function (value) {
     }
 };
 
-// 返回 left.right
+// 生成属性查找语句：left.right
 ASTCompiler.prototype.nonComputedMember = function (left, right) {
     return '(' + left + ').' + right;
 };
 
-// 判断：test通过，则执行consequent
+// 生成判断语句：test通过，则执行consequent
 ASTCompiler.prototype.if_ = function (test, consequent) {
     this.state.body.push('if(', test, '){', consequent, '}');
 };
