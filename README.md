@@ -1,6 +1,6 @@
 [TOC]
 
-# Testem-cli
+# Jasmine-cli
 
  - 搭建基于`Grunt + Jasmine`框架的单元测试基础脚手架
  - 使用了`Grunt`前端构建工具，[Grunt官网API地址](http://www.gruntjs.net/)
