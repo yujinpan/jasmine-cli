@@ -24,7 +24,7 @@ test    // 单元测试，文件名与src的待测试代码对应；
 # 安装npm包
 cnpm install
 
-# 全局安装Grunt
+# 全局安装grunt
 cnpm install -g grunt
 
 # 开始单元测试
