@@ -17,15 +17,18 @@ test    // 单元测试，文件名与src的待测试代码对应；
 
 # Get Started
 
- - 建议使用win10自带的`Powershell`执行`grunt testem`，`GitBash`与`CMD`上有几个乱码，但不影响使用
+ - 建议使用win10自带的`Powershell`执行`grunt`，`GitBash`与`CMD`上有几个乱码，但不影响使用
  - 使用浏览器打开测试地址能直观的看到具体哪一个错误
 
 ```
 # 安装npm包
 cnpm install
 
+# 全局安装Grunt
+cnpm install -g grunt
+
 # 开始单元测试
-grunt testem
+grunt
 ```
 
 # Simple Example
